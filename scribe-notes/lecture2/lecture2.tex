@@ -130,7 +130,7 @@ r = \texttt{reduce}(\texttt{A},*) = \texttt{A}[1]*\texttt{A}[2]*\texttt{A}[3]* .
 \]
 Common \texttt{reduce} operations include minimum, maximum, sum, and product.
 
-Associativity is desired so that the operation can be distributed among separate threads for parallel execution. Recall that a binary operation $*$ is associative if $a*(b*c) = (a*b)*b$.
+Associativity is desired so that the operation can be distributed among separate threads for parallel execution. Recall that a binary operation $*$ is associative if $a*(b*c) = (a*b)*c$.
 
 \section{Parallel Algorithm Metrics}
 Next, we took a few minutes so each of us could write an implementation of a simple array sum. Naturally, most of us wrote down about three to five lines of code to implement the trivial $O(n)$ sequential solution:
@@ -331,7 +331,7 @@ By applying the cascade technique to the doubly logarithmic tree, we can describ
 \begin{align*}
 \textbf{step 1: }& \text{run $\mathcal{A}$ on each segment (in parallel)}\\
 & \qquad \text{Total time complexity } T(n) = O(\log \log n) \\
-& \qquad \text{Total work complexity } W(n) = O(\log \log n)\\
+& \qquad \text{Total work complexity } W(n) = O(n/(\log \log n))*O(\log \log n) = O(n)\\
 &\\
 \textbf{step 2: }& \text{run $\mathcal{B}$ on the segment results}\\
 & \qquad \text{Total time complexity } T(n) = O(\log \log(n/(\log \log n))) < O(\log \log n) \\
