@@ -331,7 +331,7 @@ By applying the cascade technique to the doubly logarithmic tree, we can describ
 \begin{align*}
 \textbf{step 1: }& \text{run $\mathcal{A}$ on each segment (in parallel)}\\
 & \qquad \text{Total time complexity } T(n) = O(\log \log n) \\
-& \qquad \text{Total work complexity } W(n) = O(\log \log n)\\
+& \qquad \text{Total work complexity } W(n) = O(n/(\log \log n))*O(\log \log n) = O(n)\\
 &\\
 \textbf{step 2: }& \text{run $\mathcal{B}$ on the segment results}\\
 & \qquad \text{Total time complexity } T(n) = O(\log \log(n/(\log \log n))) < O(\log \log n) \\
