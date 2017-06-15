@@ -1,0 +1,5 @@
+*.aux
+*.ps
+*.dvi
+*.log
+*.odp*
