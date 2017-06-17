@@ -4,10 +4,10 @@ var x = 10  // a variable
 val y = 20  // a value
 
 x = 20      // ok
-y = 100     // ERROR! immutable!
+// y = 100     // ERROR! immutable!
 
 // function definition
-def square(x:Double): Double {
+def square(x:Double): Double = {
   x*x
 }
 square(2)   // = 4
@@ -33,7 +33,7 @@ while(j<10){
 }
 
 // no switch! use match
-i = 3
+val i = 3
 i match {
   case 1  => println("Red")
   case 2  => println("Green")

@@ -11,8 +11,8 @@ println(filteredList)
 
 
 // a lambda function
-val func = (x:Int) => x+x
-func(10)
+val func2 = (x:Int) => x+x
+func2(10)
 
 // map reduce
 val l = List(1,2,3,4,5)
