@@ -1,0 +1,35 @@
+\section*{Problem 1.5}
+Given an integer array A and two numbers x and y, give a parallel algorithm on a CREW
+PRAM to compute an array D such that D consists only of entries in A that are greater than or equal to
+x and less than or equal to y. The order of entries in D should be same as that in A.
+\probline
+
+I use a four step approach here:
+\begin{align*}
+&\text{Step 1: Compute indicator array \texttt{B}}& &T(n) = O(1) &W(n) = O(n)\\
+&\text{Step 2: Compute index locations using exclusive parallel prefix-sum}& &T(n) = O(\log n) &W(n) = O(n)\\
+&\text{Step 3: Allocate new array of proper size}& &T(n) = O(1) &W(n) = O(1)\\
+&\text{Step 4: Populate \texttt{D} with appropriate elements}& &T(n) = O(1) &W(n) = O(n)\\
+\end{align*}
+
+The indicator array contains all 1's and 0's determining whether a given element in the input array meets the criteria. The indicator is prefix-summed to determine the correct indices in the new array that should contain the associated values from the input array. The required size for the new array is taken from the last entry of the prefix sum (i.e. largest required index). This algorithm will have complexities $T(n) = O(\log n)$ and $W(n) = O(n)$. A pseudo code implementation, assuming the result of a logical expression like \texttt{a>b} returns an integer value of $1$ for \texttt{true} and $0$ for \texttt{false} (like in C):
+
+\begin{lstlisting}
+// step 1
+for all i parallel do
+	B[i] = (A[i]>=x) & (A[i]<=y);
+
+// step 2
+C = exclusive_parallel_prefix_sum(B);
+
+// step 3
+new_size = C[n-1]+1;
+D = allocate_new_array(new_size);
+
+// step 4
+for all i parallel do
+	if(B[i]==1)
+		D[C[i]] = A[i];
+
+print D
+\end{lstlisting}

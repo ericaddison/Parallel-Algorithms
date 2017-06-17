@@ -1,0 +1,47 @@
+\section*{Problem 1.2}
+Suppose that an array does not have all elements that are distinct. Show how you can use
+any algorithm that assumes distinct elements for computing the maximum to solve the problem when
+elements are not distinct.
+\probline
+
+Consider an array \texttt{A} of size $n$ that may not have all distinct integer elements, and an algorithm \texttt{find\_max} that is valid only for arrays with \textit{distinct} elements. The following pseudo code will preprocess the array \texttt{A} so that it can be used in \texttt{find\_max}:
+\begin{lstlisting}
+for all i in parallel do
+	B[i] = n*A[i] + i;
+mx = find_max(B)/n;
+\end{lstlisting}
+
+The trick here is that the elements in \texttt{B} are guaranteed to be unique:
+\\
+\textbf{Proof:}
+
+Let $a,b \in \mathbb{Z}$ be any two values in the array \texttt{A} with indices $i,j \in 0,1,2,...,n-1$ ($i\neq j$), so $a' = na+i$ and $b' = nb+j$.
+
+\textit{Case 1}: $a = b$\\
+if $a = b$, then $a' = na+i$ and $b' = na+j$, so because $i\neq j$, $a'\neq b'$.
+
+\textit{Case 2}: $a \neq b$\\
+Assume without loss of generality $a>b$, then $a$ can be written as $a = b+k$ with $k \geq 1$. Now
+\[
+a' = na + i = n(b+k) + i = nb + nk + i \geq nb + n > nb + j = b',
+\]
+
+so we have $a'>b' \Rightarrow a' \neq b'$, regardless of the array positions $i$ and $j$.
+\begin{flushright}
+$\Box$
+\end{flushright}
+
+We know that all of the elements in the modified array \texttt{B} are guaranteed to be unique by the preceding proof, and in fact case 2 of the proof also establishes the order-maintaining property we need: for any two elements $a,b \in \texttt{A}$, $a>b \Rightarrow a'>b'$, so there is no chance of corrupting the result with this procedure.
+
+\pagebreak
+
+This process can be slightly modified to be used with floating-point values. A small amount of additional pre-processing of the array of floating-point values will transform it into a usable array of integers:
+\begin{lstlisting}
+for all i in parallel do
+	B[i] = (int) (log10(A[i])*10^(N_PRECISION));
+
+mx = find_max_non_distinct(B);	// algorithm above
+mx = 10^(((float)mx)/10^(N_PRECISION));
+\end{lstlisting}
+
+Here, \texttt{N\_PRECISION} is the number of decimal places that the floating point values used can represent (e.g. 7 for 32-bit \texttt{float}s, 15 for 64-bit \texttt{double}s). There are implementation specific details here that could limit the usefulness of this approach, notably numeric precision.

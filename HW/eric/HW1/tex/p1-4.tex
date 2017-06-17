@@ -1,0 +1,53 @@
+\section*{Problem 1.4}
+Give a parallel algorithm on a CREW PRAM with time complexity O(log n) and work
+complexity O(n) to compute the inclusive parallel prefix sum of an array of size n by combining two
+algorithms: sequential prefix sum that takes O(n) time and O(n) work and a non-optimal parallel prefix
+algorithm that takes O(log n) time and O(n log n) work.
+\probline
+
+Assume we have a non-optimal algorithm to compute an inclusive parallel prefix sum, (from lecture):
+\begin{lstlisting}
+for all i parallel do
+	C[i] = A[i];
+for(d=1; d<=n; d*=2)
+	for all i parallel do
+		if(i-d>=0)
+			C[i] = C[i] + C[i-d];
+\end{lstlisting}
+
+The first loop in this algorithm has complexities $T_1(n) = O(1)$ and $W_1(n) = O(n)$, and the second loop has complexities $T_2(n) = O(\log n)$ and $W_2(n) = O(n\log n)$, so $T_{\text{par}}=O(\log n)$ and $W_{\text{par}} = O(n \log n)$.
+
+Consider splitting the input array \texttt{A} into $n/\log n$ segments of size $\log n$. Assume we can call the standard $O(n)$ sequential algorithm as \texttt{seq\_prefix\_sum\_inplace(A)} (assume this implementation modifies the array in place). A description of the cascaded algorithm is:
+\begin{align*}
+&\text{Step 1: Copy array \texttt{A} into new array \texttt{B}}& &T(n) = O(1) &W(n) = O(n)\\
+&\text{Step 2: Call \texttt{seq\_prefix\_sum()} on segmented sub-arrays}& &T(n) = O(\log n) &W(n) = O(n)\\
+&\text{Step 3: Form new array from the last element of each segment}& &T(n) = O(1) &W(n) = O(n)\\
+&\text{Step 4: Call \texttt{parallel\_prefix\_sum()} on new array (size \texttt{n/log(n)})}& &T(n) = O(\log n) &W(n) = O(n)\\
+&\text{Step 5: Add step 4 results to step 2 results with divided index}& &T(n) = O(1) &W(n) = O(n)
+\end{align*}
+Looking down the left column, it is clear that the resulting algorithm will have complexities\\
+$\boxed{T(n) = O(\log n) \text{ and }W(n) = O(n)}$. Pseudo code for the cascaded algorithms follows (assume 0-based indexing, and that a subarray can be extracted with syntax \texttt{A[x:y]}):
+\begin{lstlisting}
+// step 1
+for all i in parallel do
+	B[i] = A[i];
+	
+// step 2
+lgn = log(n);
+n_div_logn = n/log(n);
+for i = 1 to n_div_logn parallel do
+	seq_prefix_sum_inplace(B[lgn*(i-1):lgn*i-1]);
+	
+// step 3
+C = allocate_new_array( n_div_logn );
+for i = 1 to n_div_logn parallel do
+	C[i] = B[i*lgn-1];
+
+// step 4
+D = parallel_prefix_sum(C);
+
+// step 5
+for all i parallel do
+	B[i] = B[i] + D[i/n_div_logn];
+
+\end{lstlisting}

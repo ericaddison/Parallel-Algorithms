@@ -1,0 +1,21 @@
+\section*{Problem 1.3}
+Give a parallel algorithm on a CREW PRAM to determine the largest odd number in a
+given array of positive integers. Assume that the array has size n and the number of processors available
+is also n. The size n may not be a power of 2. Your algorithm should not take more than O(log n) time.
+\probline
+
+Assume 0-based indexing. This algorithm follows the standard binary tree work-depth model, similar to the canonical \texttt{reduce}-sum algorithm. The key expression is on line 8. The algorithm returns zero if no odd values are found.
+\begin{lstlisting}
+i = get_my_id();
+B[i] = A[i];
+hmax = ceil(log(n))
+for h = 1 to hmax do
+	if (i < n/(2^h)) then
+		x = (2*i>=n) ? 0 : B[2*i];
+		y = (2*i+1>=n) ? 0 : B[2*i+1];
+		B[i] = max( (x%2)*x, (y%2)*y );
+print B[0];
+\end{lstlisting}
+
+This algorithm is asymptotically equivalent in complexity to the binary tree \texttt{reduce}-sum problem. It has complexities $\boxed{T(n) = O(\log n) \text{ and } W(n) = O(n)}$. It is work-optimal because $W(n) = T_{\text{seq}}(n) = O(n)$. The conditional operators on lines 6 and 7 allow this algorithm to run properly for values of $n$ that are not powers of 2. Another option could be to pad the array with zeros out to the next power of 2, if the additional conditional checks are found to hinder performance. Or, the first iteration of the loop over \texttt{h} could be separated and written as the only iteration with the conditional checks, since $h=1$ is the only value for which it would be possible to index outside of the array.
+
