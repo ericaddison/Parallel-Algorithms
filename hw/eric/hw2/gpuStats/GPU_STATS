@@ -1,0 +1,153 @@
+
+==============NVSMI LOG==============
+
+Timestamp                           : Tue Jun 20 13:32:47 2017
+Driver Version                      : 367.55
+
+Attached GPUs                       : 1
+GPU 0000:03:00.0
+    Product Name                    : Tesla K20m
+    Product Brand                   : Tesla
+    Display Mode                    : Disabled
+    Display Active                  : Disabled
+    Persistence Mode                : Disabled
+    Accounting Mode                 : Disabled
+    Accounting Mode Buffer Size     : 1920
+    Driver Model
+        Current                     : N/A
+        Pending                     : N/A
+    Serial Number                   : 0324712063807
+    GPU UUID                        : GPU-752a8cd8-4b84-5d31-607e-c2b3f81fcfb7
+    Minor Number                    : 0
+    VBIOS Version                   : 80.10.11.00.0B
+    MultiGPU Board                  : No
+    Board ID                        : 0x300
+    GPU Part Number                 : 900-22081-0110-001
+    Inforom Version
+        Image Version               : 2081.0208.01.07
+        OEM Object                  : 1.1
+        ECC Object                  : 3.0
+        Power Management Object     : N/A
+    GPU Operation Mode
+        Current                     : All On
+        Pending                     : All On
+    GPU Virtualization Mode
+        Virtualization mode         : None
+    PCI
+        Bus                         : 0x03
+        Device                      : 0x00
+        Domain                      : 0x0000
+        Device Id                   : 0x102810DE
+        Bus Id                      : 0000:03:00.0
+        Sub System Id               : 0x101510DE
+        GPU Link Info
+            PCIe Generation
+                Max                 : 2
+                Current             : 2
+            Link Width
+                Max                 : 16x
+                Current             : 16x
+        Bridge Chip
+            Type                    : N/A
+            Firmware                : N/A
+        Replays since reset         : 0
+        Tx Throughput               : N/A
+        Rx Throughput               : N/A
+    Fan Speed                       : N/A
+    Performance State               : P0
+    Clocks Throttle Reasons
+        Idle                        : Not Active
+        Applications Clocks Setting : Active
+        SW Power Cap                : Not Active
+        HW Slowdown                 : Not Active
+        Sync Boost                  : Not Active
+        Unknown                     : Not Active
+    FB Memory Usage
+        Total                       : 4742 MiB
+        Used                        : 0 MiB
+        Free                        : 4742 MiB
+    BAR1 Memory Usage
+        Total                       : 256 MiB
+        Used                        : 2 MiB
+        Free                        : 254 MiB
+    Compute Mode                    : Default
+    Utilization
+        Gpu                         : 62 %
+        Memory                      : 4 %
+        Encoder                     : 0 %
+        Decoder                     : 0 %
+    Ecc Mode
+        Current                     : Enabled
+        Pending                     : Enabled
+    ECC Errors
+        Volatile
+            Single Bit            
+                Device Memory       : 0
+                Register File       : 0
+                L1 Cache            : 0
+                L2 Cache            : 0
+                Texture Memory      : 0
+                Texture Shared      : N/A
+                Total               : 0
+            Double Bit            
+                Device Memory       : 0
+                Register File       : 0
+                L1 Cache            : 0
+                L2 Cache            : 0
+                Texture Memory      : 0
+                Texture Shared      : N/A
+                Total               : 0
+        Aggregate
+            Single Bit            
+                Device Memory       : 0
+                Register File       : 0
+                L1 Cache            : 0
+                L2 Cache            : 0
+                Texture Memory      : 0
+                Texture Shared      : N/A
+                Total               : 0
+            Double Bit            
+                Device Memory       : 0
+                Register File       : 0
+                L1 Cache            : 0
+                L2 Cache            : 0
+                Texture Memory      : 0
+                Texture Shared      : N/A
+                Total               : 0
+    Retired Pages
+        Single Bit ECC              : 0
+        Double Bit ECC              : 0
+        Pending                     : No
+    Temperature
+        GPU Current Temp            : 18 C
+        GPU Shutdown Temp           : 95 C
+        GPU Slowdown Temp           : 90 C
+    Power Readings
+        Power Management            : Supported
+        Power Draw                  : 48.46 W
+        Power Limit                 : 225.00 W
+        Default Power Limit         : 225.00 W
+        Enforced Power Limit        : 225.00 W
+        Min Power Limit             : 150.00 W
+        Max Power Limit             : 225.00 W
+    Clocks
+        Graphics                    : 705 MHz
+        SM                          : 705 MHz
+        Memory                      : 2600 MHz
+        Video                       : 540 MHz
+    Applications Clocks
+        Graphics                    : 705 MHz
+        Memory                      : 2600 MHz
+    Default Applications Clocks
+        Graphics                    : 705 MHz
+        Memory                      : 2600 MHz
+    Max Clocks
+        Graphics                    : 758 MHz
+        SM                          : 758 MHz
+        Memory                      : 2600 MHz
+        Video                       : 540 MHz
+    Clock Policy
+        Auto Boost                  : N/A
+        Auto Boost Default          : N/A
+    Processes                       : None
+
