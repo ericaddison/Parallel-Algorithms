@@ -128,16 +128,14 @@ int main(int argc, char** argv)
 {
 
 	const int N_RUNS = 100;
-	const int MAX_POW = 25;
+	const int MAX_POW = 15;
 	int cnt = 0;
 
-	//for(int exp=10; exp<MAX_POW; exp++)
+	for(int exp=10; exp<MAX_POW; exp++)
 	{
-		int exp = 3;
-		int iRun = 0;
 		int n = 1<<exp;
 		
-		//for(int iRun=0; iRun<N_RUNS; iRun++)
+		for(int iRun=0; iRun<N_RUNS; iRun++)
 		{
 			int* h_A = (int*)malloc(n*(sizeof(int)));
 
@@ -146,24 +144,24 @@ int main(int argc, char** argv)
     		readIntsFromFile("inp.txt",n,h_A);
 
 		// get CUDA result
-    		result cudaMin = last_digit_cuda(h_A, n);
+    		result cudaResult = last_digit_cuda(h_A, n);
 
 		// get sequential result
-    		result seqMin = last_digit_seq(h_A, n);
+    		result seqResult = last_digit_seq(h_A, n);
 
 			int nErrors = 0;
 			for(int i=0; i<n; i++)
-				nErrors += (cudaMin.lastDigit[i] != seqMin.lastDigit[i]);
+				nErrors += (cudaResult.lastDigit[i] != seqResult.lastDigit[i]);
 
 
 			printf("%d, %d, %d, ",cnt, n, iRun);
 			printf("%d, ",nErrors);
-			printf("%f, %f, %f\n",seqMin.time, cudaMin.time, cudaMin.innerTime);
+			printf("%f, %f, %f\n",seqResult.time, cudaResult.time, cudaResult.innerTime);
 
 		// free array memory
 			free(h_A);
-			free(seqMin.lastDigit);
-			free(cudaMin.lastDigit);
+			free(seqResult.lastDigit);
+			free(cudaResult.lastDigit);
 
 
 		// inrement counter
