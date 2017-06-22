@@ -13,6 +13,8 @@ extern "C"
 
 typedef struct {
     int* counts;
+    float time;
+    float innerTime;
 } result;
 
 
@@ -37,7 +39,6 @@ __device__ inline void d_reduce_add_loop(int * B, int myId)
 	}
 }
 
-
 // A and B should be same size
 __global__ void range_count_kernel(int * count, int * A)
 {
@@ -49,9 +50,9 @@ __global__ void range_count_kernel(int * count, int * A)
 		A[myId] = ((myA/100)==rangeBin);
 		__syncthreads();
 		d_reduce_add_loop(A, myId);		
-		if(threadIdx.x==0)
+		if(tid==0)
 		{
-			count[blockIdx.x + gridDim.x*rangeBin] = A[myId];
+			count[bid + gridDim.x*rangeBin] = A[myId];
 		}
 	}
 
@@ -65,14 +66,31 @@ __global__ void reduce_add_kernel(int * B, int * A, int rangeBin)
 	d_reduce_add_loop(A, myId);
 	if(threadIdx.x==0)
 	{
-		B[blockIdx.x + rangeBin*gridDim.x] = A[myId];
+		B[rangeBin + 10*gridDim.x] = A[myId];
+		printf("from block=%d, i=%d, wrote %d -- %d\n",blockIdx.x, rangeBin, A[myId],B[rangeBin + 10*gridDim.x]);
 	}
 }
 
+__global__ void print_vec_kernel(int * v, int n)
+{
+	for(int i=0; i<n; i++)
+		printf("from GPU: v[%d] = %d\n",i,v[i]);
+}
 
 result range_count_cuda(int *a, int n)
 {
 
+// Cuda timing setup
+    cudaEvent_t startInner, stopInner;
+    cudaEvent_t startOuter, stopOuter;
+    float elapsedTimeInner, elapsedTimeOuter;
+    cudaEventCreate(&startInner);
+    cudaEventCreate(&startOuter);
+    cudaEventCreate(&stopInner);
+    cudaEventCreate(&stopOuter);
+
+
+    cudaEventRecord(startOuter,0);
 // allocate device memory
     int *d_A;
     cudaMalloc((int**) &d_A, sizeof(int)*n);
@@ -81,6 +99,7 @@ result range_count_cuda(int *a, int n)
     cudaMemcpy(d_A, a, n*sizeof(int), cudaMemcpyHostToDevice);
 
 // call kernel
+    cudaEventRecord(startInner,0);
     int threadsPerBlock = MIN(n,1024);
     int nBlocks = (n-1)/threadsPerBlock + 1;
 	nBlocks = MAX(1,nBlocks);
@@ -106,6 +125,13 @@ result range_count_cuda(int *a, int n)
 		reduce_add_kernel<<<n_1024_blocks,threadsPerBlock>>>(d_counts, d_all_counts+nBlocks*rangeBin, rangeBin);
 	cudaThreadSynchronize();
 
+
+	print_vec_kernel<<<1,1>>>(d_counts,10*n_1024_blocks);
+
+    cudaEventRecord(stopInner,0);
+    cudaEventSynchronize(stopInner);
+    cudaEventElapsedTime(&elapsedTimeInner, startInner, stopInner);
+
 // copy result back to host
     int* counts = (int*)malloc(10*n_1024_blocks*sizeof(int));
     cudaMemcpy(counts, d_counts, 10*n_1024_blocks*sizeof(int), cudaMemcpyDeviceToHost);
@@ -116,7 +142,11 @@ result range_count_cuda(int *a, int n)
     cudaFree(d_all_counts);
     cudaFree(d_counts);
 
-	result res = {counts};
+    cudaEventRecord(stopOuter,0);
+    cudaEventSynchronize(stopOuter);
+    cudaEventElapsedTime(&elapsedTimeOuter, startOuter, stopOuter);
+
+	result res = {counts, elapsedTimeOuter, elapsedTimeInner};
     return res;
 
 }
@@ -125,11 +155,23 @@ result range_count_cuda(int *a, int n)
 
 result range_count_seq(int* a, int n)
 {
+// Cuda timing setup
+    cudaEvent_t start, stop;
+    float elapsedTime;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+    cudaEventRecord(start,0);
+
+
 	int* b = (int*)calloc(10,sizeof(int));
     for(int i=0; i<n; i++)
       b[a[i]/100]++;
 	
-	result res = {b};
+    cudaEventRecord(stop,0);
+    cudaEventSynchronize(stop);
+    cudaEventElapsedTime(&elapsedTime, start, stop);
+
+	result res = {b, elapsedTime, 0.0f};
 	return res;
 }
 
@@ -143,7 +185,7 @@ int main(int argc, char** argv)
 
 	//for(int exp=20; exp<=MAX_POW; exp++)
 	{
-		int exp = 21;
+		int exp = 20;
 		int n = 1<<exp;
 		
 		for(int iRun=0; iRun<N_RUNS; iRun++)
@@ -164,6 +206,11 @@ int main(int argc, char** argv)
 			for(int i=0; i<10; i++)
 				printf("%d: %d -- %d\n",i, seqResult.counts[i], cudaResult.counts[i]);
 			
+//				nErrors += (cudaResult.lastDigit[i] != seqResult.lastDigit[i]);
+
+//			printf("%d, %d, %d, ",cnt, n, iRun);
+//			printf("%d, ",nErrors);
+//			printf("%f, %f, %f\n",seqResult.time, cudaResult.time, cudaResult.innerTime);
 
 		// free array memory
 			free(h_A);
