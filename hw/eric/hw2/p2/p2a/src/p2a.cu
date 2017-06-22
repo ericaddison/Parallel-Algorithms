@@ -13,13 +13,12 @@ extern "C"
 
 typedef struct {
     int* counts;
-	int n;
     float time;
     float innerTime;
 } result;
 
 
-__device__ int nextPow2(int n)
+__device__ int d_next_pow2(int n)
 {
     int nBits = 0;
 	while( (n>>nBits) > 0 )
@@ -27,9 +26,9 @@ __device__ int nextPow2(int n)
     return 1<<nBits;
 }
 
-__device__ inline void simple_reduce_add(int * B, int myId)
+__device__ inline void d_reduce_add_loop(int * B, int myId)
 {
-	int n = nextPow2(blockDim.x);
+	int n = d_next_pow2(blockDim.x);
 	for(int s=n/2; s > 0; s>>=1)
 	{
 		if( (threadIdx.x<s) && (threadIdx.x+s)<blockDim.x)
@@ -41,26 +40,45 @@ __device__ inline void simple_reduce_add(int * B, int myId)
 }
 
 
-__global__ void range_count_kernel(int * count, int * reduceArray, int * A)
+// A and B should be same size
+__global__ void range_count_kernel(int * count, int * A)
 {
 	int tid = threadIdx.x;
 	int bid = blockIdx.x;
 	int bdim = blockDim.x;
     int myId = tid + bid * bdim;
+	int myA = A[myId];
 
+	
 	for(int rangeBin=0; rangeBin<10; rangeBin++)
 	{
-		reduceArray[myId] = ((A[myId]/100)==rangeBin);
+		A[myId] = ((myA/100)==rangeBin);
 		__syncthreads();
-		simple_reduce_add(reduceArray, myId);		
+		d_reduce_add_loop(A, myId);		
 		if(tid==0)
 		{
-			count[bid + gridDim.x*rangeBin] = reduceArray[myId];
+			count[bid + gridDim.x*rangeBin] = A[myId];
 		}
 	}
 
 }
 
+__global__ void reduce_add_kernel(int * B, int * A, int result_index)
+{
+    int myId = threadIdx.x + blockIdx.x * blockDim.x;
+
+	__syncthreads();
+	d_reduce_add_loop(A, myId);
+	if(threadIdx.x==0)
+	{
+		B[result_index] = A[myId];
+	}
+}
+
+__global__ void consolidate_array(int * A)
+{
+
+}
 
 result range_count_cuda(int *a, int n)
 {
@@ -77,9 +95,8 @@ result range_count_cuda(int *a, int n)
 
     cudaEventRecord(startOuter,0);
 // allocate device memory
-    int *d_A, *d_temp, *d_count;
+    int *d_A;
     cudaMalloc((int**) &d_A, sizeof(int)*n);
-    cudaMalloc((int**) &d_temp, sizeof(int)*n);
 
 // copy input array to device
     cudaMemcpy(d_A, a, n*sizeof(int), cudaMemcpyHostToDevice);
@@ -89,10 +106,19 @@ result range_count_cuda(int *a, int n)
     int threadsPerBlock = MIN(n,1024);
     int nBlocks = n/threadsPerBlock + ((n%threadsPerBlock==0)?0:1);
 	nBlocks = MAX(1,nBlocks);
-    cudaMalloc((int**) &d_count, sizeof(int)*10*nBlocks);
+
+	int *d_all_counts;
+    cudaMalloc((int**) &d_all_counts, sizeof(int)*10*nBlocks);
 
 	// block level kernel call
-	range_count_kernel<<<nBlocks,threadsPerBlock>>>(d_count,d_temp,d_A);
+	range_count_kernel<<<nBlocks,threadsPerBlock>>>(d_all_counts,d_A);
+	cudaThreadSynchronize();
+
+	// reduce block results
+	int *d_counts;
+	cudaMalloc((int**) &d_counts,10*sizeof(int));
+	for(int rangeBin=0; rangeBin<10; rangeBin++)
+		reduce_add_kernel<<<1,nBlocks>>>(d_counts, d_all_counts+nBlocks*rangeBin, rangeBin);
 	cudaThreadSynchronize();
 
     cudaEventRecord(stopInner,0);
@@ -100,18 +126,18 @@ result range_count_cuda(int *a, int n)
     cudaEventElapsedTime(&elapsedTimeInner, startInner, stopInner);
 
 // copy result back to host
-    int* counts = (int*)malloc(10*nBlocks*sizeof(int));
-    cudaMemcpy(counts, d_count, 10*nBlocks*sizeof(int), cudaMemcpyDeviceToHost);
+    int* counts = (int*)malloc(10*sizeof(int));
+    cudaMemcpy(counts, d_counts, 10*sizeof(int), cudaMemcpyDeviceToHost);
 
     cudaFree(d_A);
-    cudaFree(d_temp);
-    cudaFree(d_count);
+    cudaFree(d_all_counts);
+    cudaFree(d_counts);
 
     cudaEventRecord(stopOuter,0);
     cudaEventSynchronize(stopOuter);
     cudaEventElapsedTime(&elapsedTimeOuter, startOuter, stopOuter);
 
-	result res = {counts, nBlocks, elapsedTimeOuter, elapsedTimeInner};
+	result res = {counts, elapsedTimeOuter, elapsedTimeInner};
     return res;
 
 }
@@ -136,7 +162,7 @@ result range_count_seq(int* a, int n)
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&elapsedTime, start, stop);
 
-	result res = {b, 0, elapsedTime, 0.0f};
+	result res = {b, elapsedTime, 0.0f};
 	return res;
 }
 
@@ -150,7 +176,7 @@ int main(int argc, char** argv)
 
 	//for(int exp=20; exp<=MAX_POW; exp++)
 	{
-		int exp = 11;
+		int exp = 21;
 		int n = 1<<exp;
 		
 		for(int iRun=0; iRun<N_RUNS; iRun++)
@@ -169,9 +195,7 @@ int main(int argc, char** argv)
 
 			int nErrors = 0;
 			for(int i=0; i<10; i++)
-				printf("SEQ: %d: %d\n",i, seqResult.counts[i]);
-			for(int i=0; i<10*cudaResult.n; i++)
-				printf("%d, %d: %d\n",i,i/cudaResult.n, cudaResult.counts[i]);
+				printf("%d: %d -- %d\n",i, seqResult.counts[i], cudaResult.counts[i]);
 			
 //				nErrors += (cudaResult.lastDigit[i] != seqResult.lastDigit[i]);
 
