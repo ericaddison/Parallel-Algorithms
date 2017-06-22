@@ -58,15 +58,16 @@ __global__ void range_count_kernel(int * count, int * A, int n)
 
 }
 
-__global__ void reduce_add_kernel(int * B, int * A, int rangeBin, int n)
+__global__ void reduce_add_kernel(int * B, int * A, int n)
 {
     int myId = threadIdx.x + blockIdx.x * blockDim.x;
+	int rangeBin = blockIdx.y;
 
 	__syncthreads();
-	d_reduce_add_loop(A, myId, n);
+	d_reduce_add_loop(A+n*rangeBin, myId, n);
 	if(threadIdx.x==0)
 	{
-		B[blockIdx.x + rangeBin*gridDim.x] = A[myId];
+		B[blockIdx.x + rangeBin*gridDim.x] = A[n*rangeBin + myId];
 	}
 }
 
@@ -102,8 +103,7 @@ result range_count_cuda(int *a, int n)
 
 		cudaMalloc((int**) &d_counts,10*new_nBlocks*sizeof(int));
 
-		for(int rangeBin=0; rangeBin<10; rangeBin++)
-			reduce_add_kernel<<<new_nBlocks,threadsPerBlock>>>(d_counts, d_all_counts+nBlocks*rangeBin, rangeBin, nBlocks);
+		reduce_add_kernel<<<dim3(new_nBlocks,10),threadsPerBlock>>>(d_counts, d_all_counts, nBlocks);
 		cudaThreadSynchronize();
 
 		cudaFree(d_all_counts);
