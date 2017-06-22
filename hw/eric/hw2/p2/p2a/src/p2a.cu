@@ -88,32 +88,33 @@ result range_count_cuda(int *a, int n)
 	int *d_all_counts;
     cudaMalloc((int**) &d_all_counts, sizeof(int)*10*nBlocks);
 
-	// block level kernel call
+// block level kernel call
 	range_count_kernel<<<nBlocks,threadsPerBlock>>>(d_all_counts,d_A);
 	cudaThreadSynchronize();
 
-	// at this point, each group of 1024 elements (each block) has computed
-	// its counts and stored them in the d_all_counts array
-	// next, need to reduce those results, taking care in case the number
-	// of blocks is greater than 1024
-
-	// reduce block results
+// reduce block results
 	int *d_counts;
-	int n_1024_blocks = (nBlocks-1)/1024+1;
-	cudaMalloc((int**) &d_counts,10*n_1024_blocks*sizeof(int));
-	threadsPerBlock = MIN(nBlocks,1024);
-	for(int rangeBin=0; rangeBin<10; rangeBin++)
-		reduce_add_kernel<<<n_1024_blocks,threadsPerBlock>>>(d_counts, d_all_counts+nBlocks*rangeBin, rangeBin);
-	cudaThreadSynchronize();
+	while( nBlocks > 1 )
+	{
+		int new_nBlocks = (nBlocks-1)/1024+1;
+		threadsPerBlock = MIN(nBlocks,1024);
+
+		cudaMalloc((int**) &d_counts,10*new_nBlocks*sizeof(int));
+
+		for(int rangeBin=0; rangeBin<10; rangeBin++)
+			reduce_add_kernel<<<new_nBlocks,threadsPerBlock>>>(d_counts, d_all_counts+nBlocks*rangeBin, rangeBin);
+		cudaThreadSynchronize();
+
+		cudaFree(d_all_counts);
+		d_all_counts = d_counts;
+		nBlocks = new_nBlocks;
+	}
 
 // copy result back to host
-    int* counts = (int*)malloc(10*n_1024_blocks*sizeof(int));
-    cudaMemcpy(counts, d_counts, 10*n_1024_blocks*sizeof(int), cudaMemcpyDeviceToHost);
-	for(int i=0; i<10*n_1024_blocks; i++)
-		printf("outof: %d, %d, %d\n",i,i/n_1024_blocks, counts[i]);
+    int* counts = (int*)malloc(10*sizeof(int));
+    cudaMemcpy(counts, d_counts, 10*sizeof(int), cudaMemcpyDeviceToHost);
 
     cudaFree(d_A);
-    cudaFree(d_all_counts);
     cudaFree(d_counts);
 
 	result res = {counts};
@@ -137,45 +138,29 @@ result range_count_seq(int* a, int n)
 int main(int argc, char** argv)
 {
 
-	const int N_RUNS = 1;
-	const int MAX_POW = 20;
-	int cnt = 0;
+	int exp = 25;
+	int n = 1<<exp;
+	int* h_A = (int*)malloc(n*(sizeof(int)));
 
-	//for(int exp=20; exp<=MAX_POW; exp++)
-	{
-		int exp = 21;
-		int n = 1<<exp;
-		
-		for(int iRun=0; iRun<N_RUNS; iRun++)
-		{
-			int* h_A = (int*)malloc(n*(sizeof(int)));
+// make test array
+	writeRandomFile(n, "inp.txt");
+   	readIntsFromFile("inp.txt",n,h_A);
 
-		// make test array
-			writeRandomFile(n, "inp.txt");
-    		readIntsFromFile("inp.txt",n,h_A);
+// get CUDA result
+	result cudaResult = range_count_cuda(h_A, n);
 
-		// get CUDA result
-    		result cudaResult = range_count_cuda(h_A, n);
+// get sequential result
+	result seqResult = range_count_seq(h_A, n);
 
-		// get sequential result
-    		result seqResult = range_count_seq(h_A, n);
+// print results
+	printf("n   SEQ      CUDA\n-----------------\n");
+	for(int i=0; i<10; i++)
+		printf("%d %8d %8d\n",i, seqResult.counts[i], cudaResult.counts[i]);
 
-			int nErrors = 0;
-			for(int i=0; i<10; i++)
-				printf("%d: %d -- %d\n",i, seqResult.counts[i], cudaResult.counts[i]);
-			
-
-		// free array memory
-			free(h_A);
-			free(seqResult.counts);
-			free(cudaResult.counts);
-
-		// inrement counter
-			cnt++;
-		}
-
-	}
-
+// free array memory
+	free(h_A);
+	free(seqResult.counts);
+	free(cudaResult.counts);
 
     return 0;
 }
