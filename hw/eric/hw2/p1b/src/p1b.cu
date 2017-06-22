@@ -15,37 +15,10 @@ typedef struct {
 } result;
 
 
-__device__ int d_get_last_digit(int x)
-{
-	int ndigits = (int)log10f(x);
-	for(int i=0; i<ndigits; i++)
-	{
-		int pow10 = (int)roundf(powf(10,(ndigits-i)));
-		int d = (x/pow10);
-		x -= d*pow10;
-	}
-
-	return x;
-}
-
 __global__ void last_digit_kernel(int * d_out, int * d_in)
 {
     int myId = threadIdx.x + blockDim.x * blockIdx.x;
-    d_out[myId] = d_get_last_digit( d_in[myId]);
-}
-
-
-int h_get_last_digit(int x)
-{
-	int ndigits = (int)log10(x);
-	for(int i=0; i<ndigits; i++)
-	{
-		int pow10 = (int)pow(10,(ndigits-i));
-		int d = (x/pow10);
-		x -= d*pow10;
-	}
-
-	return x;
+    d_out[myId] = d_in[myId]%10;
 }
 
 
@@ -61,7 +34,7 @@ result last_digit_seq(int* a, int n)
 
 	int* b = (int*)malloc(n*sizeof(int));
     for(int i=0; i<n; i++)
-      b[i] = h_get_last_digit(a[i]);
+      b[i] = a[i]%10;
 	
     cudaEventRecord(stop,0);
     cudaEventSynchronize(stop);
@@ -128,7 +101,7 @@ int main(int argc, char** argv)
 {
 
 	const int N_RUNS = 100;
-	const int MAX_POW = 15;
+	const int MAX_POW = 25;
 	int cnt = 0;
 
 	for(int exp=10; exp<MAX_POW; exp++)
@@ -152,7 +125,6 @@ int main(int argc, char** argv)
 			int nErrors = 0;
 			for(int i=0; i<n; i++)
 				nErrors += (cudaResult.lastDigit[i] != seqResult.lastDigit[i]);
-
 
 			printf("%d, %d, %d, ",cnt, n, iRun);
 			printf("%d, ",nErrors);
