@@ -10,6 +10,7 @@ extern "C"
 
 #define MIN(x,y) ((x<y)?x:y)
 #define MAX(x,y) ((x>y)?x:y)
+#define MAX_THREADS 1024
 
 typedef struct {
     int* counts;
@@ -24,12 +25,12 @@ __device__ int d_next_pow2(int n)
     return 1<<nBits;
 }
 
-__device__ inline void d_reduce_add_loop(int * B, int myId)
+__device__ inline void d_reduce_add_loop(int * B, int myId, int n)
 {
-	int n = d_next_pow2(blockDim.x);
-	for(int s=n/2; s > 0; s>>=1)
+	int n2 = d_next_pow2(blockDim.x);
+	for(int s=n2/2; s > 0; s>>=1)
 	{
-		if( (threadIdx.x<s) && (threadIdx.x+s)<blockDim.x)
+		if( (threadIdx.x<s) && (threadIdx.x+s)<blockDim.x && (myId+s)<n)
 		{
 			B[myId] += B[myId+s];
 		}
@@ -39,7 +40,7 @@ __device__ inline void d_reduce_add_loop(int * B, int myId)
 
 
 // A and B should be same size
-__global__ void range_count_kernel(int * count, int * A)
+__global__ void range_count_kernel(int * count, int * A, int n)
 {
     int myId = threadIdx.x + blockIdx.x * blockDim.x;
 	int myA = A[myId];
@@ -48,7 +49,7 @@ __global__ void range_count_kernel(int * count, int * A)
 	{
 		A[myId] = ((myA/100)==rangeBin);
 		__syncthreads();
-		d_reduce_add_loop(A, myId);		
+		d_reduce_add_loop(A, myId, n);		
 		if(threadIdx.x==0)
 		{
 			count[blockIdx.x + gridDim.x*rangeBin] = A[myId];
@@ -57,12 +58,12 @@ __global__ void range_count_kernel(int * count, int * A)
 
 }
 
-__global__ void reduce_add_kernel(int * B, int * A, int rangeBin)
+__global__ void reduce_add_kernel(int * B, int * A, int rangeBin, int n)
 {
     int myId = threadIdx.x + blockIdx.x * blockDim.x;
 
 	__syncthreads();
-	d_reduce_add_loop(A, myId);
+	d_reduce_add_loop(A, myId, n);
 	if(threadIdx.x==0)
 	{
 		B[blockIdx.x + rangeBin*gridDim.x] = A[myId];
@@ -81,7 +82,7 @@ result range_count_cuda(int *a, int n)
     cudaMemcpy(d_A, a, n*sizeof(int), cudaMemcpyHostToDevice);
 
 // call kernel
-    int threadsPerBlock = MIN(n,1024);
+    int threadsPerBlock = MIN(n,MAX_THREADS);
     int nBlocks = (n-1)/threadsPerBlock + 1;
 	nBlocks = MAX(1,nBlocks);
 
@@ -89,26 +90,27 @@ result range_count_cuda(int *a, int n)
     cudaMalloc((int**) &d_all_counts, sizeof(int)*10*nBlocks);
 
 // block level kernel call
-	range_count_kernel<<<nBlocks,threadsPerBlock>>>(d_all_counts,d_A);
+	range_count_kernel<<<nBlocks,threadsPerBlock>>>(d_all_counts,d_A, n);
 	cudaThreadSynchronize();
 
 // reduce block results
 	int *d_counts;
-	while( nBlocks > 1 )
+	do
 	{
-		int new_nBlocks = (nBlocks-1)/1024+1;
-		threadsPerBlock = MIN(nBlocks,1024);
+		int new_nBlocks = (nBlocks-1)/MAX_THREADS+1;
+		threadsPerBlock = MIN(nBlocks,MAX_THREADS);
 
 		cudaMalloc((int**) &d_counts,10*new_nBlocks*sizeof(int));
 
 		for(int rangeBin=0; rangeBin<10; rangeBin++)
-			reduce_add_kernel<<<new_nBlocks,threadsPerBlock>>>(d_counts, d_all_counts+nBlocks*rangeBin, rangeBin);
+			reduce_add_kernel<<<new_nBlocks,threadsPerBlock>>>(d_counts, d_all_counts+nBlocks*rangeBin, rangeBin, nBlocks);
 		cudaThreadSynchronize();
 
 		cudaFree(d_all_counts);
 		d_all_counts = d_counts;
 		nBlocks = new_nBlocks;
-	}
+	} while( nBlocks > 1 );
+
 
 // copy result back to host
     int* counts = (int*)malloc(10*sizeof(int));
@@ -138,8 +140,9 @@ result range_count_seq(int* a, int n)
 int main(int argc, char** argv)
 {
 
-	int exp = 25;
+	int exp = 21;
 	int n = 1<<exp;
+	n -=1;
 	int* h_A = (int*)malloc(n*(sizeof(int)));
 
 // make test array
