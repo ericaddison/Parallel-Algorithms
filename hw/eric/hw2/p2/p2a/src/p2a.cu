@@ -27,6 +27,19 @@ __device__ int nextPow2(int n)
     return 1<<nBits;
 }
 
+__device__ inline void simple_reduce_add(int * B, int myId)
+{
+	int n = nextPow2(blockDim.x);
+	for(int s=n/2; s > 0; s>>=1)
+	{
+		if( (threadIdx.x<s) && (threadIdx.x+s)<blockDim.x)
+		{
+			B[myId] += B[myId+s];
+		}
+		__syncthreads();
+	}
+}
+
 
 __global__ void range_count_kernel(int * count, int * reduceArray, int * A)
 {
@@ -35,20 +48,11 @@ __global__ void range_count_kernel(int * count, int * reduceArray, int * A)
 	int bdim = blockDim.x;
     int myId = tid + bid * bdim;
 
-
 	for(int rangeBin=0; rangeBin<10; rangeBin++)
 	{
 		reduceArray[myId] = ((A[myId]/100)==rangeBin);
 		__syncthreads();
-		for(int s=bdim/2; s > 0; s>>=1)
-		{
-			if( (tid<s) && (tid+s)<bdim)
-			{
-				int sum = reduceArray[myId] + reduceArray[myId+s];
-				reduceArray[myId] = sum;
-			}
-			__syncthreads();
-		}
+		simple_reduce_add(reduceArray, myId);		
 		if(tid==0)
 		{
 			count[bid + gridDim.x*rangeBin] = reduceArray[myId];

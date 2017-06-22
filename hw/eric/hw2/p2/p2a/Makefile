@@ -12,7 +12,7 @@ _OBJ = $(_SRC:.cu=.o)
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 all: $(OBJ)
-	$(CC) $(NVCC_FLAGS) $(LIB_DIRS) $(LIBS) $^ -o p2a.out
+	$(CC) $(NVCC_FLAGS) $(LIB_DIRS) $(LIBS) $^ -o ./bin/p2a.out
 
 $(ODIR)/%.o: $(SDIR)/%.cu
 	$(CC) $(NVCC_FLAGS) $(INCLUDE_DIRS) $(SDIR)/$*.cu -c -o $@

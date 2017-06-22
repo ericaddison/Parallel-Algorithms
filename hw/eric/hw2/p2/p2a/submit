@@ -24,4 +24,4 @@
 #SBATCH --mail-type=end    
 # email me when the job finishes 
 
-./p2a.out
+./bin/p2a.out
