@@ -6,7 +6,7 @@ LIB_DIRS = -L../../common
 
 ODIR = obj
 SDIR = src
-_SRC = p2a.cu
+_SRC = p2a_2d.cu
 SRC = $(patsubst %,$(SDIR)/%,$(_SRC))
 _OBJ = $(_SRC:.cu=.o)
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
