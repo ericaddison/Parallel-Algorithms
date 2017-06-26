@@ -52,16 +52,16 @@ __device__ inline void d_reduce_add_loop(int * B, int myId, int n)
 
 __global__ void range_count_kernel(int * count, int * B, int * A, int n)
 {
+	extern __shared__ int sdata[];
     int myId = threadIdx.x + blockIdx.x * blockDim.x;
 	int rangeBin = blockIdx.y;
-	int * C = B + n*rangeBin;
+	int * C = sdata + blockIdx.x*rangeBin;
  
 	if(myId<n)
 	{
 		C[myId] = ((A[myId]/100)==rangeBin);
 		__syncthreads();
 		d_reduce_add_loop(C, myId, n);		
-		__syncthreads();
 		if(threadIdx.x==0)
 		{
 			count[blockIdx.x + gridDim.x*rangeBin] = C[myId];
@@ -106,7 +106,7 @@ result range_count_cuda(int *a, int n)
 
 // block level kernel call
 	dim3 blocks(nBlocks,10);
-	range_count_kernel<<<blocks,threadsPerBlock>>>(d_all_counts,d_temp,d_A, n);
+	range_count_kernel<<<blocks,threadsPerBlock,10*threadsPerBlock*sizeof(int)>>>(d_all_counts,d_temp,d_A, n);
 	cudaThreadSynchronize();
     cudaFree(d_A);
 	cudaFree(d_temp);
