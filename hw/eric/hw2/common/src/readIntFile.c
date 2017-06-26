@@ -20,6 +20,8 @@ int getNextInt(FILE* fp)
   return atoi(newnum);
 }
 
+
+
 void readIntsFromFile(const char* filename, int n, int* array)
 {
   FILE* fp = fopen(filename, "r");
@@ -33,6 +35,7 @@ void readIntsFromFile(const char* filename, int n, int* array)
     array[i] = getNextInt(fp);
   fclose(fp);
 }
+
 
 
 void writeRandomFile(int n, const char* filename)

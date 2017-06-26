@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <math.h>
+#include <sys/time.h>
 #include <cuda_runtime.h>
 extern "C"
 {
@@ -16,6 +17,9 @@ typedef struct {
     int* counts;
 } result;
 
+
+//***********************************************
+// Device convenience functions
 
 __device__ inline int d_next_pow2(int n)
 {
@@ -32,59 +36,117 @@ __device__ inline int d_checkReduceIndex(int myId, int s, int n)
 }
 
 
-// loop for reduce-add
-// contains protection in case n is not a power of 2
-// and from reading off the end of the array
-__device__ inline void d_reduce_add_loop(int * B, int myId, int n)
-{
-	int n2 = d_next_pow2(blockDim.x);
-	for(int s=n2/2; s > 0; s>>=1)
-	{
-		if( d_checkReduceIndex(myId, s, n) )
-		{
-			B[myId] += B[myId+s];
-			
-		}
-		__syncthreads();
-	}
-}
+//***********************************************
+// Problem 2a functions: use global memory
 
-
-__global__ void range_count_kernel(int * count, int * B, int * A, int n)
+__global__ void range_count_kernel_global(int * count, int * B, int * A, int n)
 {
     int myId = threadIdx.x + blockIdx.x * blockDim.x;
 	int rangeBin = blockIdx.y;
 	int * C = B + n*rangeBin;
  
+	// create indicator array
 	if(myId<n)
-	{
 		C[myId] = ((A[myId]/100)==rangeBin);
+	__syncthreads();
+
+	// reduce indicator array
+	int n2 = d_next_pow2(blockDim.x);
+	for(int s=n2/2; s > 0; s>>=1)
+	{
+		if( d_checkReduceIndex(myId, s, n) )
+			C[myId] += C[myId+s];
 		__syncthreads();
-		d_reduce_add_loop(C, myId, n);		
-		__syncthreads();
-		if(threadIdx.x==0)
-		{
-			count[blockIdx.x + gridDim.x*rangeBin] = C[myId];
-		}
 	}
+
+	// thread 0 write result
+	if(threadIdx.x==0)
+		count[blockIdx.x + gridDim.x*rangeBin] = C[myId];
 }
 
 
-__global__ void reduce_add_kernel(int * B, int * A, int n)
+__global__ void reduce_add_kernel_global(int * B, int * A, int n)
 {
     int myId = threadIdx.x + blockIdx.x * blockDim.x;
 	int rangeBin = blockIdx.y;
+	int * C = A + n*rangeBin;
 
-	__syncthreads();
-	d_reduce_add_loop(A+n*rangeBin, myId, n);
-	if(threadIdx.x==0)
+	// reduce block array
+	int n2 = d_next_pow2(blockDim.x);
+	for(int s=n2/2; s > 0; s>>=1)
 	{
-		B[blockIdx.x + rangeBin*gridDim.x] = A[n*rangeBin + myId];
+		if( d_checkReduceIndex(myId, s, n) )
+			C[myId] += C[myId+s];
+		__syncthreads();
 	}
+
+	// thread 0 write result
+	if(threadIdx.x==0)
+		B[blockIdx.x + rangeBin*gridDim.x] = C[myId];
 }
 
 
-result range_count_cuda(int *a, int n)
+
+
+//***********************************************
+// Problem 2b functions: use shared memory
+
+__global__ void range_count_kernel_shared(int * count, int * A, int n)
+{
+	extern __shared__ int sdata[];
+    int myId = threadIdx.x + blockIdx.x * blockDim.x;
+    int tid = threadIdx.x;
+	int rangeBin = blockIdx.y;
+ 
+	// create indicator array
+	sdata[tid] = ((A[myId]/100)==rangeBin);
+	__syncthreads();
+
+	// reduce indicator array
+	int n2 = d_next_pow2(blockDim.x);
+	for(int s=n2/2; s > 0; s>>=1)
+	{
+		if( d_checkReduceIndex(myId, s, n) )
+			sdata[tid] += sdata[tid+s];
+		__syncthreads();
+	}
+
+	// thread 0 write result
+	if(tid==0)
+		count[blockIdx.x + gridDim.x*rangeBin] = sdata[tid];
+}
+
+
+__global__ void reduce_add_kernel_shared(int * B, int * A, int n)
+{
+	extern __shared__ int sdata[];
+    int myId = threadIdx.x + blockIdx.x * blockDim.x;
+    int tid = threadIdx.x;
+	int rangeBin = blockIdx.y;
+
+	// copy value from global to shared memory
+	sdata[tid] = A[myId + n*rangeBin];
+
+	// reduce block array
+	int n2 = d_next_pow2(blockDim.x);
+	for(int s=n2/2; s > 0; s>>=1)
+	{
+		if( d_checkReduceIndex(myId, s, n) )
+			sdata[tid] += sdata[tid+s];
+		__syncthreads();
+	}
+
+	// thread 0 write result
+	if(tid==0)
+		B[blockIdx.x + rangeBin*gridDim.x] = sdata[tid];
+}
+
+
+
+//***********************************************
+// Host calling functions
+
+result range_count_cuda(int *a, int n, const char shared)
 {
 
 // allocate device memory
@@ -106,7 +168,10 @@ result range_count_cuda(int *a, int n)
 
 // block level kernel call
 	dim3 blocks(nBlocks,10);
-	range_count_kernel<<<blocks,threadsPerBlock>>>(d_all_counts,d_temp,d_A, n);
+	if(shared)
+		range_count_kernel_shared<<<blocks,threadsPerBlock,threadsPerBlock*sizeof(int)>>>(d_all_counts, d_A, n);
+	else
+		range_count_kernel_global<<<blocks,threadsPerBlock>>>(d_all_counts,d_temp,d_A, n);
 	cudaThreadSynchronize();
     cudaFree(d_A);
 	cudaFree(d_temp);
@@ -121,7 +186,10 @@ result range_count_cuda(int *a, int n)
 		cudaMalloc((int**) &d_counts,10*new_nBlocks*sizeof(int));
 
 		blocks = dim3(new_nBlocks,10);
-		reduce_add_kernel<<<blocks,threadsPerBlock>>>(d_counts, d_all_counts, nBlocks);
+		if(shared)
+			reduce_add_kernel_shared<<<blocks,threadsPerBlock,threadsPerBlock*sizeof(int)>>>(d_counts, d_all_counts, nBlocks);
+		else
+			reduce_add_kernel_global<<<blocks,threadsPerBlock>>>(d_counts, d_all_counts, nBlocks);
 		cudaThreadSynchronize();
 
 		cudaFree(d_all_counts);
@@ -153,33 +221,57 @@ result range_count_seq(int* a, int n)
 }
 
 
+//***********************************************
+// Main function
+
 int main(int argc, char** argv)
 {
 
-	int exp = 22;
-	int n = 1<<exp;
-	n -= 234;
-	int* h_A = (int*)malloc(n*(sizeof(int)));
+// run through several times for run time stats
+	
+	const int NRUNS = 10;
+    struct timeval t;
+    gettimeofday(&t, NULL);
+    srand(t.tv_usec);	
 
-// make test array
-	writeRandomFile(n, "inp.txt");
-   	readIntsFromFile("inp.txt",n,h_A);
+	int n = rand()%(1<<28);
+	
+	for(int irun=0; irun<NRUNS; irun++)
+	{
+		int* h_A = (int*)malloc(n*(sizeof(int)));
 
-// get CUDA result
-	result cudaResult = range_count_cuda(h_A, n);
+	// make test array
+		writeRandomFile(n, "inp.txt");
+	   	readIntsFromFile("inp.txt",n,h_A);
 
-// get sequential result
-	result seqResult = range_count_seq(h_A, n);
+	// get CUDA result from global kernel
+		result cudaResultGlobal = range_count_cuda(h_A, n, 0);
 
-// print results
-	printf("n   SEQ      CUDA\n-----------------\n");
-	for(int i=0; i<10; i++)
-		printf("%d %8d %8d\n",i, seqResult.counts[i], cudaResult.counts[i]);
+	// get CUDA result from shared memory kernel
+		result cudaResultShared = range_count_cuda(h_A, n, 1);
 
-// free array memory
-	free(h_A);
-	free(seqResult.counts);
-	free(cudaResult.counts);
+	// get sequential result
+		result seqResult = range_count_seq(h_A, n);
 
+	// print results
+		printf("n   SEQ      CUDA_G   CUDA_S\n-----------------\n");
+		for(int i=0; i<10; i++)
+		{
+			printf("%d %8d %8d %8d",i, seqResult.counts[i],
+				cudaResultGlobal.counts[i], cudaResultShared.counts[i]);
+			if( seqResult.counts[i]!=cudaResultGlobal.counts[i] 
+				|| seqResult.counts[i] != cudaResultShared.counts[i])
+				printf ("  XXX");
+			printf("\n");
+		}
+
+	// free array memory
+		free(h_A);
+		free(seqResult.counts);
+		free(cudaResultGlobal.counts);
+		free(cudaResultShared.counts);
+	}
+
+	printf("n = %d\n",n);
     return 0;
 }
