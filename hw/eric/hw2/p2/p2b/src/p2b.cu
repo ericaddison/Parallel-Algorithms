@@ -54,19 +54,25 @@ __global__ void range_count_kernel(int * count, int * B, int * A, int n)
 {
 	extern __shared__ int sdata[];
     int myId = threadIdx.x + blockIdx.x * blockDim.x;
+    int tid = threadIdx.x;
 	int rangeBin = blockIdx.y;
-	int * C = sdata + blockIdx.x*rangeBin;
  
-	if(myId<n)
+	// create indicator array
+	sdata[tid] = ((A[myId]/100)==rangeBin);
+	__syncthreads();
+
+	// reduce indicator array
+	int n2 = d_next_pow2(blockDim.x);
+	for(int s=n2/2; s > 0; s>>=1)
 	{
-		C[myId] = ((A[myId]/100)==rangeBin);
+		if( d_checkReduceIndex(myId, s, n) )
+			sdata[tid] += sdata[tid+s];
 		__syncthreads();
-		d_reduce_add_loop(C, myId, n);		
-		if(threadIdx.x==0)
-		{
-			count[blockIdx.x + gridDim.x*rangeBin] = C[myId];
-		}
 	}
+
+	// thread 0 write result
+	if(tid==0)
+		count[blockIdx.x + gridDim.x*rangeBin] = sdata[tid];
 }
 
 
@@ -158,7 +164,7 @@ int main(int argc, char** argv)
 
 	int exp = 22;
 	int n = 1<<exp;
-	n -= 234;
+	n -= 251;
 	int* h_A = (int*)malloc(n*(sizeof(int)));
 
 // make test array
@@ -172,9 +178,15 @@ int main(int argc, char** argv)
 	result seqResult = range_count_seq(h_A, n);
 
 // print results
+	
 	printf("n   SEQ      CUDA\n-----------------\n");
 	for(int i=0; i<10; i++)
-		printf("%d %8d %8d\n",i, seqResult.counts[i], cudaResult.counts[i]);
+	{
+		printf("%d %8d %8d",i, seqResult.counts[i], cudaResult.counts[i]);
+		if( seqResult.counts[i] - cudaResult.counts[i] != 0)
+			printf ("  XXX");
+		printf("\n");
+	}
 
 // free array memory
 	free(h_A);
