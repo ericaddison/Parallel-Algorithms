@@ -6,13 +6,13 @@ LIB_DIRS = -L../../common
 
 ODIR = obj
 SDIR = src
-_SRC = p2a.cu
+_SRC = p2.cu p2a.cu p2b.cu
 SRC = $(patsubst %,$(SDIR)/%,$(_SRC))
 _OBJ = $(_SRC:.cu=.o)
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 all: $(OBJ)
-	$(CC) $(NVCC_FLAGS) $(LIB_DIRS) $(LIBS) $^ -o ./bin/p2a.out
+	$(CC) $(NVCC_FLAGS) $(LIB_DIRS) $(LIBS) $^ -o ./bin/p2.out
 
 $(ODIR)/%.o: $(SDIR)/%.cu
 	$(CC) $(NVCC_FLAGS) $(INCLUDE_DIRS) $(SDIR)/$*.cu -c -o $@
