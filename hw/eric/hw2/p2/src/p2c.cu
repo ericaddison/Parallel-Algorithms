@@ -16,9 +16,21 @@ __global__ void hs_scan_kernel(int *A, int n)
 	for(int s=1; s<n; s*=2)
 	{
 		toggler = !toggler;
-		int newInd = myId+n*toggler;
-		int oldInd = myId+n*(!toggler);
-		sdata[newInd] = sdata[oldInd] + (myId<s)?0:sdata[oldInd-s];
+		int newInd = myId + n*toggler;
+		int oldInd = myId + n*(!toggler);
+		sdata[newInd] = sdata[oldInd];
+		if(myId>=s)
+			sdata[newInd] += sdata[oldInd-s];
+		__syncthreads();
+		if(myId==0)
+		{
+			for(int i=0; i<n; i++)
+				printf("%d ", sdata[i]);
+			printf("  |  ");
+			for(int i=0; i<n; i++)
+				printf("%d ", sdata[i+n]);
+			printf("\n");	
+		}
 		__syncthreads();
 	}
 
