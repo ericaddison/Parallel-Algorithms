@@ -6,7 +6,7 @@ LIB_DIRS = -L../common
 
 ODIR = obj
 SDIR = src
-_SRC = p2.cu p2a.cu p2b.cu
+_SRC = p2.cu p2a.cu p2b.cu p2c.cu
 SRC = $(patsubst %,$(SDIR)/%,$(_SRC))
 _OBJ = $(_SRC:.cu=.o)
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
@@ -18,4 +18,5 @@ $(ODIR)/%.o: $(SDIR)/%.cu
 	$(CC) $(NVCC_FLAGS) $(INCLUDE_DIRS) $(SDIR)/$*.cu -c -o $@
 
 submit: all
+	rm ea26799*
 	sbatch submit

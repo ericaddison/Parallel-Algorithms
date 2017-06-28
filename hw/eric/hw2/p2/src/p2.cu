@@ -7,7 +7,8 @@ extern "C"
 #define MAX_THREADS 1024
 
 typedef struct {
-    int* counts;
+    int* histogram;
+	int* scan;
 } result;
 
 
@@ -67,12 +68,19 @@ result range_count_cuda(int *a, int n, const int shared)
 
 
 // copy result back to host
-    int* counts = (int*)malloc(10*sizeof(int));
-    cudaMemcpy(counts, d_counts, 10*sizeof(int), cudaMemcpyDeviceToHost);
+    int* histogram = (int*)malloc(10*sizeof(int));
+    cudaMemcpy(histogram, d_counts, 10*sizeof(int), cudaMemcpyDeviceToHost);
+
+// scan on the resulting histogram for CDF
+// known data size n=10
+	hs_scan_kernel<<<1,10,10*sizeof(int)>>>(d_counts,10);
+	cudaThreadSynchronize();
+    int* scan = (int*)malloc(10*sizeof(int));
+    cudaMemcpy(scan, d_counts, 10*sizeof(int), cudaMemcpyDeviceToHost);
 
     cudaFree(d_counts);
 
-	result res = {counts};
+	result res = {histogram, scan};
     return res;
 
 }
@@ -80,11 +88,17 @@ result range_count_cuda(int *a, int n, const int shared)
 
 result range_count_seq(int* a, int n)
 {
-	int* b = (int*)calloc(10,sizeof(int));
-    for(int i=0; i<n; i++)
-      b[a[i]/100]++;
+	int* hist = (int*)calloc(10,sizeof(int));
+	int* scan = (int*)calloc(10,sizeof(int));
 	
-	result res = {b};
+    for(int i=0; i<n; i++)
+      hist[a[i]/100]++;
+	
+	scan[0] = hist[0];
+	for(int i=1; i<10; i++)
+		scan[i] = scan[i-1] + hist[i];
+
+	result res = {hist, scan};
 	return res;
 }
 
@@ -97,7 +111,7 @@ int main(int argc, char** argv)
 
 // run through several times for run time stats
 	
-	const int NRUNS = 10;
+	const int NRUNS = 1;
     struct timeval t;
     gettimeofday(&t, NULL);
     srand(t.tv_usec);
@@ -123,11 +137,20 @@ int main(int argc, char** argv)
 		result seqResult = range_count_seq(h_A, n);
 
 	// print results
-		printf("\nrun SEQ      CUDA_G  CUDA_S\n-----------------\n");
+		printf("\nrun SEQ_H    CUDA_G_H CUDA_S_H  |  SEQ_CM  CUDA_G_CM  CUDA_S_CM\n");
+		printf("---------------------------------------------------------\n");
 		for(int i=0; i<10; i++)
 		{
-			printf("%d %8d %8d %8d",i, seqResult.counts[i], cudaSharedResult.counts[i], cudaSharedResult.counts[i]);
-			if( seqResult.counts[i]!=cudaGlobalResult.counts[i] || seqResult.counts[i]!=cudaSharedResult.counts[i])
+			printf("%d %8d ",i, seqResult.histogram[i]);
+			printf("%8d ", cudaSharedResult.histogram[i]);
+			printf("%8d", cudaSharedResult.histogram[i]);
+			printf("   |  %8d ", seqResult.scan[i]);
+			printf("%8d ", cudaSharedResult.scan[i]);
+			printf("%8d", cudaSharedResult.scan[i]);
+			if( seqResult.histogram[i]!=cudaGlobalResult.histogram[i] 
+				|| seqResult.histogram[i]!=cudaSharedResult.histogram[i]
+				|| seqResult.scan[i]!=cudaGlobalResult.scan[i]
+				|| seqResult.scan[i]!=cudaSharedResult.scan[i])
 			{
 				printf ("  XXX");
 				errCnt++;
@@ -137,9 +160,11 @@ int main(int argc, char** argv)
 
 	// free array memory
 		free(h_A);
-		free(seqResult.counts);
-		free(cudaGlobalResult.counts);
-		free(cudaSharedResult.counts);
+		free(seqResult.histogram);
+		free(cudaGlobalResult.histogram);
+		free(cudaSharedResult.histogram);
+		free(cudaSharedResult.scan);
+		free(cudaGlobalResult.scan);
 	}
 
 	printf("n = %d\nerrCnt = %d\n",n,errCnt);

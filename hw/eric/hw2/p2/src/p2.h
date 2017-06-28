@@ -20,3 +20,6 @@ __global__ void range_count_kernel_shared(int * count, int * A, int n);
 __global__ void reduce_add_kernel_shared(int * B, int * A, int n);
 
 
+// p2c.cu functions
+__global__ void hs_scan_kernel(int *A, int n);
+

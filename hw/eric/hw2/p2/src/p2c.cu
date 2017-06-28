@@ -9,45 +9,19 @@ __global__ void hs_scan_kernel(int *A, int n)
 	extern __shared__ int sdata[];
 	int myId = threadIdx.x + blockIdx.x * blockDim.x;
 
+	int myVal = A[myId];
 	sdata[myId] = A[myId];
-	int toggler=0;
 	__syncthreads();
 
 	for(int s=1; s<n; s*=2)
 	{
-		toggler = !toggler;
-		int newInd = myId + n*toggler;
-		int oldInd = myId + n*(!toggler);
-		sdata[newInd] = sdata[oldInd] + ((myId<s)?0:sdata[oldInd-s]);
+		if(myId>=s)
+			myVal = sdata[myId] + sdata[myId-s];
+		__syncthreads();
+		sdata[myId] = myVal;
 		__syncthreads();
 	}
 
-	A[myId] = sdata[myId + n*toggler];
+	A[myId] = myVal;
 
 }
-
-int main()
-{
-	int N = 7;
-	int A[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-	
-	int *d_A;
-	cudaMalloc((int**) &d_A, N*sizeof(int));
-	cudaMemcpy(d_A, A, N*sizeof(int), cudaMemcpyHostToDevice);
-
-	hs_scan_kernel<<<1,N,2*N>>>(d_A, N);
-	cudaThreadSynchronize();
-
-	int *B = (int*)malloc(N*sizeof(int));
-	cudaMemcpy(B,d_A,N*sizeof(int),cudaMemcpyDeviceToHost);
-
-
-	for(int i=0; i<N; i++)
-		printf("%d, ", B[i]);
-	printf("\n");
-
-	cudaFree(d_A);
-	free(B);
-	
-}
-
