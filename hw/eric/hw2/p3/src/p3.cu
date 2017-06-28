@@ -17,39 +17,72 @@ __device__ void d_hs_scan(int myId, int *A, int n, int initVal)
 		if(myId>=s)
 			myVal += A[myId-s];
 		__syncthreads();
-		A[myId] = myVal;
+		if(myId<n)
+			A[myId] = myVal;
 		__syncthreads();
 	}
 }
 
 
 // perform a scan for radix sort
-__global__ void radix_scan_binary_kernel(int *A, int n, int nDigits)
+__global__ void radix_sort_kernel(int *A, int n, int nDigits)
 {
 	extern __shared__ int sdata[];
 	int *left = sdata;
 	int *right = sdata+n;
-	int myId = threadIdx.x + blockIdx.x * blockDim.x;
+	int offset = blockIdx.x * blockDim.x;
+	int tid = threadIdx.x;
+	int myId = tid + offset;
 
 
 	for(int iDigit=0; iDigit<nDigits; iDigit++)
 	{
 		int myVal = A[myId];
 		int radix = 1<<iDigit;
-		left[myId] = !(myVal&radix);
-		right[myId] = !(left[myId]);
+		left[tid] = !(myVal&radix);
+		right[tid] = !(left[tid]);
 		__syncthreads();
 	
 	// scan
-		d_hs_scan(myId, left, n, 0);
-		d_hs_scan(myId, right, n, left[n-1]);
+		d_hs_scan(tid, left, n, 0);
+		d_hs_scan(tid, right, n, left[n-1]);
 
 	// scatter
-		int index = (myVal&radix)?(right[myId]-1):(left[myId]-1);
-		A[index] = myVal;
+		int index = (myVal&radix)?(right[tid]-1):(left[tid]-1);
+		A[index+offset] = myVal;
 		__syncthreads();
 	}
 }
+
+
+__device__ int d_binary_search(int *A, int key, int n)
+{
+	int l = 0;
+	int r = n-1;
+	int ind = (l+r)/2;
+	while( l<=r )
+	{
+		if(A[ind]>key)
+			r = ind-1;
+		else
+			l = ind+1;
+		ind = (l+r)/2;		
+	}
+	return ind+1;
+}
+
+
+
+__global__ void parallel_merge_kernel(int *d_out, int *A, int *B, int n)
+{
+	int tid = threadIdx.x;
+	int myInd = tid;
+	int otherInd = d_binary_search(B, A[tid], n);
+	d_out[myInd+otherInd] = A[tid];	
+	// need to account for repeats here...
+}
+
+
 
 
 int checkSorted(int *A, int n)
@@ -71,7 +104,7 @@ int main()
     srand(t.tv_usec);
     double exp = (MAX_EXP*( (double)rand()/(double)RAND_MAX));
     int n = (int)pow(2,exp); 
-	n = 1<<10;
+	n = 1<<11;
 
 	// make test array
 	int* h_A = (int*)malloc(n*(sizeof(int)));
@@ -84,13 +117,25 @@ int main()
 		printf("%d, ",h_A[i]);
 	printf("\n");
 	
-	int *d_A;
+	int *d_A, *d_B;
 	cudaMalloc((int**)&d_A, n*sizeof(int));
+	cudaMalloc((int**)&d_B, n*sizeof(int));
 	cudaMemcpy(d_A, h_A, n*sizeof(int), cudaMemcpyHostToDevice);
 
-	radix_scan_binary_kernel<<<1,n,2*n*sizeof(int)>>>(d_A,n, nDigits);
+	int nBlocks = (n-1)/1024+1;
+	int threadsPerBlock = MIN(1024,n);
+
+	radix_sort_kernel<<<nBlocks,threadsPerBlock,2*threadsPerBlock*sizeof(int)>>>(d_A, threadsPerBlock, nDigits);
 	cudaThreadSynchronize();
-	cudaMemcpy(h_A, d_A, n*sizeof(int), cudaMemcpyDeviceToHost);
+
+	if(nBlocks>1)
+	{
+		parallel_merge_kernel<<<1,1024>>>(d_B,d_A,d_A+1024,n);
+		parallel_merge_kernel<<<1,1024>>>(d_B,d_A+1024,d_A,n);
+	}
+
+
+	cudaMemcpy(h_A, d_B, n*sizeof(int), cudaMemcpyDeviceToHost);
 
 	for(int i=0; i<n; i++)
 		printf("%d, ",h_A[i]);
@@ -99,8 +144,7 @@ int main()
 	printf("Array is %s sorted\n", (checkSorted(h_A,n)?"\b":"NOT"));
 
 	cudaFree(d_A);	
+	cudaFree(d_B);	
 	free(h_A);
-
-
 }
 
