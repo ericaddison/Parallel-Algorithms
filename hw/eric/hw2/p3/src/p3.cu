@@ -4,6 +4,9 @@ extern "C"
 	#include "randomInts.h"
 }
 
+#define MAX_THREADS 4
+
+enum repeatCheck { check, noCheck };
 
 __device__ void d_hs_scan(int myId, int *A, int n, int initVal)
 {
@@ -52,6 +55,7 @@ __global__ void radix_sort_kernel(int *A, int n, int nDigits)
 		A[index+offset] = myVal;
 		__syncthreads();
 	}
+
 }
 
 
@@ -68,18 +72,38 @@ __device__ int d_binary_search(int *A, int key, int n)
 			l = ind+1;
 		ind = (l+r)/2;		
 	}
-	return ind+1;
+	return (r<0)?0:ind+1;
 }
 
 
 
-__global__ void parallel_merge_kernel(int *d_out, int *A, int *B, int n)
+// this will merge two pieces of array A of size n into the first 2n entries of d_out
+__global__ void parallel_merge_kernel(int *d_out, int *A, int n)
 {
 	int tid = threadIdx.x;
 	int myInd = tid;
+	int *B = A+n;
+	
+	// swap A and B if this is blockIdx.y==1
+	if(blockIdx.y==1)
+	{
+		int *C = A;
+		A = B;
+		B = C;
+	}
+		
 	int otherInd = d_binary_search(B, A[tid], n);
-	d_out[myInd+otherInd] = A[tid];	
-	// need to account for repeats here...
+	int mergedIndex = myInd + otherInd;
+	int nRepeats=0;
+
+	// sensitive to repeated elements if blockIdx.y==1
+	if(blockIdx.y==1)
+	{
+	 	nRepeats = otherInd - d_binary_search(B,A[tid]-1,n);		
+		mergedIndex -= nRepeats;
+	}
+
+	d_out[mergedIndex] = A[tid];	
 }
 
 
@@ -98,18 +122,20 @@ int checkSorted(int *A, int n)
 
 int main()
 {
+
 	int MAX_EXP = 10;
     struct timeval t;
     gettimeofday(&t, NULL);
     srand(t.tv_usec);
     double exp = (MAX_EXP*( (double)rand()/(double)RAND_MAX));
     int n = (int)pow(2,exp); 
-	n = 1<<11;
+	n = 7;
 
 	// make test array
-	int* h_A = (int*)malloc(n*(sizeof(int)));
-	writeRandomFile(n, "inp.txt");
-	readIntsFromFile("inp.txt",n,h_A);
+	//int* h_A = (int*)malloc(n*(sizeof(int)));
+	//writeRandomFile(n, "inp.txt");
+	//readIntsFromFile("inp.txt",n,h_A);
+	int h_A[] = {3, 5, 5, 2, 5, 1, 7, 7};
 	
 	int nDigits = MAX_EXP+1;
 	printf("\n");
@@ -122,20 +148,24 @@ int main()
 	cudaMalloc((int**)&d_B, n*sizeof(int));
 	cudaMemcpy(d_A, h_A, n*sizeof(int), cudaMemcpyHostToDevice);
 
-	int nBlocks = (n-1)/1024+1;
-	int threadsPerBlock = MIN(1024,n);
+	int nBlocks = (n-1)/MAX_THREADS+1;
+	int threadsPerBlock = MIN(MAX_THREADS,n);
 
 	radix_sort_kernel<<<nBlocks,threadsPerBlock,2*threadsPerBlock*sizeof(int)>>>(d_A, threadsPerBlock, nDigits);
 	cudaThreadSynchronize();
 
 	if(nBlocks>1)
 	{
-		parallel_merge_kernel<<<1,1024>>>(d_B,d_A,d_A+1024,n);
-		parallel_merge_kernel<<<1,1024>>>(d_B,d_A+1024,d_A,n);
+		parallel_merge_kernel<<<dim3(1,2),threadsPerBlock>>>(d_B,d_A,threadsPerBlock);
+		cudaThreadSynchronize();
+		cudaMemcpy(h_A, d_B, n*sizeof(int), cudaMemcpyDeviceToHost);
+	}
+	else
+	{
+		cudaMemcpy(h_A, d_A, n*sizeof(int), cudaMemcpyDeviceToHost);
 	}
 
 
-	cudaMemcpy(h_A, d_B, n*sizeof(int), cudaMemcpyDeviceToHost);
 
 	for(int i=0; i<n; i++)
 		printf("%d, ",h_A[i]);
@@ -145,6 +175,6 @@ int main()
 
 	cudaFree(d_A);	
 	cudaFree(d_B);	
-	free(h_A);
+	//free(h_A);
 }
 
