@@ -97,45 +97,24 @@ __global__ void parallel_merge_kernel(int *d_out, int *A, int treeLevel)
 
 
 
-int main()
+void cuda_radix_sort(int *A, int n, int nDigits)
 {
-
-	int MAX_EXP = 5;
-    struct timeval t;
-    gettimeofday(&t, NULL);
-    srand(t.tv_usec);
-    double exp = (MAX_EXP*( (double)rand()/(double)RAND_MAX));
-    int n = (int)pow(2,exp); 
-	//n = 10;
-	
-	printf("MAX_THREADS = %d\n",MAX_THREADS);
-	printf("n = %d\n",n);
-
-
 	// pad array if less than a power of 2
 	int np2 = next_pow2(n);
 	int* h_A = (int*)calloc(np2,(sizeof(int)));
+	memcpy(h_A,A,n*sizeof(int));
 
-	// make test array
-	writeRandomFile(n, "inp.txt");
-	readIntsFromFile("inp.txt",n,h_A);
-	//int h_A[] = {3, 5, 5, 2, 5, 1, 7, 7};
-
-	int nDigits = 10;
-	printf("\n");
-	for(int i=0; i<n; i++)
-		printf("%d, ",h_A[i]);
-	printf("\n");
-
-	
+	// allocate and fill device memory
 	int *d_A, *d_B;
 	cudaMalloc((int**)&d_A, np2*sizeof(int));
 	cudaMalloc((int**)&d_B, np2*sizeof(int));
 	cudaMemcpy(d_A, h_A, np2*sizeof(int), cudaMemcpyHostToDevice);
 
+	// device config
 	int nBlocks = (np2-1)/MAX_THREADS+1;
 	int threadsPerBlock = MIN(MAX_THREADS,np2);
 
+	// launch radix kernel
 	radix_sort_kernel<<<nBlocks,threadsPerBlock,2*threadsPerBlock*sizeof(int)>>>(d_A, threadsPerBlock, nDigits);
 	cudaThreadSynchronize();
 
@@ -151,6 +130,7 @@ int main()
 	}
 	printf("\n");
 */
+	// merge sorted blocks
 	int cnt=1;
 //	int nMerges = nBlocks;
 	while((nBlocks/cnt)>1)
@@ -178,9 +158,45 @@ int main()
 		d_B = d_C;
 	}
 
-	cudaMemcpy(h_A, d_A+(np2-n), n*sizeof(int), cudaMemcpyDeviceToHost);
+	// copy result and free memory
+	cudaMemcpy(A, d_A+(np2-n), n*sizeof(int), cudaMemcpyDeviceToHost);
+	cudaFree(d_A);	
+	cudaFree(d_B);	
+	free(h_A);
+
+}
 
 
+void seq_radix_sort(int *A, int n, int nDigits)
+{
+
+}
+
+
+int main()
+{
+
+	int MAX_EXP = 5;
+    struct timeval t;
+    gettimeofday(&t, NULL);
+    srand(t.tv_usec);
+    double exp = (MAX_EXP*( (double)rand()/(double)RAND_MAX));
+    int n = (int)pow(2,exp); 
+	
+	printf("MAX_THREADS = %d\n",MAX_THREADS);
+	printf("n = %d\n",n);
+
+	// make test array
+	int* A = (int*)malloc(n*(sizeof(int)));
+	writeRandomFile(n, "inp.txt");
+	readIntsFromFile("inp.txt",n,A);
+
+	printf("\n");
+	for(int i=0; i<n; i++)
+		printf("%d, ",h_A[i]);
+	printf("\n");
+
+	cuda_radix_sort(A, n, 10);
 
 	// print A
 	printf("A: ");
@@ -191,8 +207,8 @@ int main()
 
 	printf("Array is %s sorted\n", (checkSorted(h_A,n)?"\b":"NOT"));
 
-	cudaFree(d_A);	
-	cudaFree(d_B);	
-	free(h_A);
+	free(A);
+
+	
 }
 
