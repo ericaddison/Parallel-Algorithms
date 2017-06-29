@@ -1,4 +1,4 @@
-CODE_DIRS = p1 p2 p3
+CODE_DIRS = common p1 p2 p3
 
 .PHONY: all $(CODE_DIRS)
 

@@ -1,8 +1,10 @@
 int next_pow2(int n)
 {
+	// check if already a power of 2
 	if(!(n&(n-1)))
 		return n;
 
+	// find and return next power of 2
     int nextPow2 = 1;
 	while( n>>=1 )
 		nextPow2 <<= 1;

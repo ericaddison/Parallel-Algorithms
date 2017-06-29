@@ -4,6 +4,7 @@
 #include <math.h>
 #include <sys/time.h>
 #include <cuda_runtime.h>
+#include "deviceFunctions.h"
 
 #define MIN(x,y) ((x<y)?x:y)
 #define MAX(x,y) ((x>y)?x:y)

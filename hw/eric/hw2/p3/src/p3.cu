@@ -8,7 +8,6 @@ extern "C"
 
 enum repeatCheck { check, noCheck };
 
-// H-S scan with initial value
 __device__ void d_hs_scan(int myId, int *A, int n, int initVal)
 {
 	if(myId==0)
@@ -36,14 +35,9 @@ __global__ void radix_sort_kernel(int *A, int n, int nDigits)
 	int *right = sdata+n;
 	int offset = blockIdx.x * blockDim.x;
 	int tid = threadIdx.x;
-	int nth = blockDim.x;
 	int myId = tid + offset;
 
-	// compensate for non-full blocks
-	if(blockIdx.x == (gridDim.x-1))
-		nth = n - nth*(gridDim.x-1);
 
-	// LSB radix sort
 	for(int iDigit=0; iDigit<nDigits; iDigit++)
 	{
 		int myVal = A[myId];
@@ -53,39 +47,15 @@ __global__ void radix_sort_kernel(int *A, int n, int nDigits)
 		__syncthreads();
 	
 	// scan
-		d_hs_scan(tid, left, nth, 0);
-		d_hs_scan(tid, right, nth, left[nth-1]);
+		d_hs_scan(tid, left, n, 0);
+		d_hs_scan(tid, right, n, left[n-1]);
 
 	// scatter
-		if(myId<n)
-		{
-			int index = (myVal&radix)?(right[tid]-1):(left[tid]-1);
-			A[index+offset] = myVal;
-		}
+		int index = (myVal&radix)?(right[tid]-1):(left[tid]-1);
+		A[index+offset] = myVal;
 		__syncthreads();
 	}
 
-	if(tid==0)
-	{
-		printf("%d: %d, %d, %d, %d\n",blockIdx.x,A[0+offset], A[1+offset], A[2+offset], A[3+offset]);
-	}
-}
-
-
-__device__ int d_binary_search(int *A, int key, int n)
-{
-	int l = 0;
-	int r = n-1;
-	int ind = (l+r)/2;
-	while( l<=r )
-	{
-		if(A[ind]>key)
-			r = ind-1;
-		else
-			l = ind+1;
-		ind = (l+r)/2;		
-	}
-	return (r<0)?0:ind+1;
 }
 
 
@@ -95,7 +65,8 @@ __global__ void parallel_merge_kernel(int *d_out, int *A, int n)
 {
 	int tid = threadIdx.x;
 	int myInd = tid;
-	int *B;
+	int *B = A+n;
+	
 	// swap A and B if this is blockIdx.y==1
 	if(blockIdx.y==1)
 	{
@@ -119,6 +90,8 @@ __global__ void parallel_merge_kernel(int *d_out, int *A, int n)
 }
 
 
+
+
 int main()
 {
 
@@ -128,18 +101,13 @@ int main()
     srand(t.tv_usec);
     double exp = (MAX_EXP*( (double)rand()/(double)RAND_MAX));
     int n = (int)pow(2,exp); 
-	n = 6;//1<<3;
-
-
-	// pad array to next power of 2
-	
-
+	n = 7;
 
 	// make test array
-	//int* h_A = (int*)malloc(n*(sizeof(int)));
-	//writeRandomFile(n, "inp.txt");
-	//readIntsFromFile("inp.txt",n,h_A);
-	int h_A[] = {3, 5, 5, 2, 5, 1, 7, 7};
+	int* h_A = (int*)malloc(n*(sizeof(int)));
+	writeRandomFile(n, "inp.txt");
+	readIntsFromFile("inp.txt",n,h_A);
+	//int h_A[] = {3, 5, 5, 2, 5, 1, 7, 7};
 	
 	int nDigits = MAX_EXP+1;
 	printf("\n");
@@ -155,7 +123,7 @@ int main()
 	int nBlocks = (n-1)/MAX_THREADS+1;
 	int threadsPerBlock = MIN(MAX_THREADS,n);
 
-	radix_sort_kernel<<<nBlocks,threadsPerBlock,2*threadsPerBlock*sizeof(int)>>>(d_A, n, nDigits);
+	radix_sort_kernel<<<nBlocks,threadsPerBlock,2*threadsPerBlock*sizeof(int)>>>(d_A, threadsPerBlock, nDigits);
 	cudaThreadSynchronize();
 
 	if(nBlocks>1)
@@ -179,6 +147,6 @@ int main()
 
 	cudaFree(d_A);	
 	cudaFree(d_B);	
-	//free(h_A);
+	free(h_A);
 }
 
