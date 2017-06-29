@@ -24,4 +24,5 @@
 #SBATCH --mail-type=end    
 # email me when the job finishes 
 
-nvprof ./bin/p3.out
+#nvprof ./bin/p3.out
+./bin/p3.out
