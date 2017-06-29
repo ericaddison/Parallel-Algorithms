@@ -1,6 +1,6 @@
 CC = nvcc
 NVCC_FLAGS = -arch=compute_35 -code=sm_35
-LIBS = -lm -lrandomIntFile
+LIBS = -lm -lhw
 INCLUDE_DIRS = -I../common/include
 LIB_DIRS = -L../common
 

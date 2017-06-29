@@ -1,11 +1,7 @@
 #ifndef _RANDINTS
 #define _RANDINTS
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <time.h>
-#include <math.h>
+#include "hw.h"
 
 #define NDIGITS 3
 

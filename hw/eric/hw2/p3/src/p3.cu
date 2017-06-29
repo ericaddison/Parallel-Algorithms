@@ -8,6 +8,7 @@ extern "C"
 
 enum repeatCheck { check, noCheck };
 
+// H-S scan with initial value
 __device__ void d_hs_scan(int myId, int *A, int n, int initVal)
 {
 	if(myId==0)
@@ -35,9 +36,14 @@ __global__ void radix_sort_kernel(int *A, int n, int nDigits)
 	int *right = sdata+n;
 	int offset = blockIdx.x * blockDim.x;
 	int tid = threadIdx.x;
+	int nth = blockDim.x;
 	int myId = tid + offset;
 
+	// compensate for non-full blocks
+	if(blockIdx.x == (gridDim.x-1))
+		nth = n - nth*(gridDim.x-1);
 
+	// LSB radix sort
 	for(int iDigit=0; iDigit<nDigits; iDigit++)
 	{
 		int myVal = A[myId];
@@ -47,15 +53,22 @@ __global__ void radix_sort_kernel(int *A, int n, int nDigits)
 		__syncthreads();
 	
 	// scan
-		d_hs_scan(tid, left, n, 0);
-		d_hs_scan(tid, right, n, left[n-1]);
+		d_hs_scan(tid, left, nth, 0);
+		d_hs_scan(tid, right, nth, left[nth-1]);
 
 	// scatter
-		int index = (myVal&radix)?(right[tid]-1):(left[tid]-1);
-		A[index+offset] = myVal;
+		if(myId<n)
+		{
+			int index = (myVal&radix)?(right[tid]-1):(left[tid]-1);
+			A[index+offset] = myVal;
+		}
 		__syncthreads();
 	}
 
+	if(tid==0)
+	{
+		printf("%d: %d, %d, %d, %d\n",blockIdx.x,A[0+offset], A[1+offset], A[2+offset], A[3+offset]);
+	}
 }
 
 
@@ -82,8 +95,7 @@ __global__ void parallel_merge_kernel(int *d_out, int *A, int n)
 {
 	int tid = threadIdx.x;
 	int myInd = tid;
-	int *B = A+n;
-	
+	int *B;
 	// swap A and B if this is blockIdx.y==1
 	if(blockIdx.y==1)
 	{
@@ -107,19 +119,6 @@ __global__ void parallel_merge_kernel(int *d_out, int *A, int n)
 }
 
 
-
-
-int checkSorted(int *A, int n)
-{
-
-	for(int i=1; i<n; i++)
-		if(A[i]<A[i-1])
-			return 0;
-	return 1;
-
-}
-
-
 int main()
 {
 
@@ -129,7 +128,12 @@ int main()
     srand(t.tv_usec);
     double exp = (MAX_EXP*( (double)rand()/(double)RAND_MAX));
     int n = (int)pow(2,exp); 
-	n = 7;
+	n = 6;//1<<3;
+
+
+	// pad array to next power of 2
+	
+
 
 	// make test array
 	//int* h_A = (int*)malloc(n*(sizeof(int)));
@@ -151,7 +155,7 @@ int main()
 	int nBlocks = (n-1)/MAX_THREADS+1;
 	int threadsPerBlock = MIN(MAX_THREADS,n);
 
-	radix_sort_kernel<<<nBlocks,threadsPerBlock,2*threadsPerBlock*sizeof(int)>>>(d_A, threadsPerBlock, nDigits);
+	radix_sort_kernel<<<nBlocks,threadsPerBlock,2*threadsPerBlock*sizeof(int)>>>(d_A, n, nDigits);
 	cudaThreadSynchronize();
 
 	if(nBlocks>1)
