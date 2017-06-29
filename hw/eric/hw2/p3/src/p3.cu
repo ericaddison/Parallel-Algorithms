@@ -4,7 +4,7 @@ extern "C"
 	#include "randomInts.h"
 }
 
-#define MAX_THREADS 4
+#define MAX_THREADS 8
 
 enum repeatCheck { check, noCheck };
 
@@ -55,7 +55,6 @@ __global__ void radix_sort_kernel(int *A, int n, int nDigits)
 		A[index+offset] = myVal;
 		__syncthreads();
 	}
-
 }
 
 
@@ -95,33 +94,37 @@ __global__ void parallel_merge_kernel(int *d_out, int *A, int n)
 int main()
 {
 
-	int MAX_EXP = 10;
+	int MAX_EXP = 5;
     struct timeval t;
     gettimeofday(&t, NULL);
     srand(t.tv_usec);
     double exp = (MAX_EXP*( (double)rand()/(double)RAND_MAX));
     int n = (int)pow(2,exp); 
-	n = 7;
+	n = 10;
+	
+	// pad array if less than a power of 2
+	int* h_A = (int*)malloc(n*(sizeof(int)));
 
 	// make test array
-	int* h_A = (int*)malloc(n*(sizeof(int)));
 	writeRandomFile(n, "inp.txt");
 	readIntsFromFile("inp.txt",n,h_A);
 	//int h_A[] = {3, 5, 5, 2, 5, 1, 7, 7};
-	
-	int nDigits = MAX_EXP+1;
+
+	int nDigits = 10;
 	printf("\n");
 	for(int i=0; i<n; i++)
 		printf("%d, ",h_A[i]);
 	printf("\n");
 	
+	int np2 = next_pow2(n);
 	int *d_A, *d_B;
-	cudaMalloc((int**)&d_A, n*sizeof(int));
-	cudaMalloc((int**)&d_B, n*sizeof(int));
+	cudaMalloc((int**)&d_A, np2*sizeof(int));
+	cudaMalloc((int**)&d_B, np2*sizeof(int));
+	cudaMemset(d_A, 0, np2*sizeof(int));
 	cudaMemcpy(d_A, h_A, n*sizeof(int), cudaMemcpyHostToDevice);
 
-	int nBlocks = (n-1)/MAX_THREADS+1;
-	int threadsPerBlock = MIN(MAX_THREADS,n);
+	int nBlocks = (np2-1)/MAX_THREADS+1;
+	int threadsPerBlock = MIN(MAX_THREADS,np2);
 
 	radix_sort_kernel<<<nBlocks,threadsPerBlock,2*threadsPerBlock*sizeof(int)>>>(d_A, threadsPerBlock, nDigits);
 	cudaThreadSynchronize();
@@ -130,11 +133,11 @@ int main()
 	{
 		parallel_merge_kernel<<<dim3(1,2),threadsPerBlock>>>(d_B,d_A,threadsPerBlock);
 		cudaThreadSynchronize();
-		cudaMemcpy(h_A, d_B, n*sizeof(int), cudaMemcpyDeviceToHost);
+		cudaMemcpy(h_A, d_B+(np2-n), n*sizeof(int), cudaMemcpyDeviceToHost);
 	}
 	else
 	{
-		cudaMemcpy(h_A, d_A, n*sizeof(int), cudaMemcpyDeviceToHost);
+		cudaMemcpy(h_A, d_A+(np2-n), n*sizeof(int), cudaMemcpyDeviceToHost);
 	}
 
 
