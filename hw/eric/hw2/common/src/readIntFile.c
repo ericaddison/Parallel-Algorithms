@@ -22,18 +22,32 @@ int getNextInt(FILE* fp)
 
 
 
-void readIntsFromFile(const char* filename, int n, int* array)
+randArray readIntsFromFile(const char* filename)
 {
   FILE* fp = fopen(filename, "r");
+  randArray array = {0,0};
   if(fp==NULL)
   {
     fprintf(stderr,"ERROR opening file %s\n", filename);
-    return;
+    return array;
   }
 
+  // get number of values
+  int bufSize = 20;
+  char n_str[bufSize]; 
+  fgets(n_str, bufSize, fp);
+  int n = atoi(n_str);
+
+  int *A = (int*)malloc(n*sizeof(int));
+
   for(int i=0; i<n; i++)
-    array[i] = getNextInt(fp);
+    A[i] = getNextInt(fp);
   fclose(fp);
+
+  array.n = n;
+  array.A = A;
+
+  return array;
 }
 
 
@@ -46,10 +60,9 @@ void writeRandomFile(int n, const char* filename)
 
     int nMax = (int)pow(10,NDIGITS);
     FILE* fp = fopen(filename,"w");
+    fprintf(fp,"%d\n",n);
     for(int i=0; i<n-1; i++)
         fprintf(fp,"%d, ",rand()%nMax);
     fprintf(fp,"%d",rand()%nMax);
     fclose(fp);
 }
-
-

@@ -13,6 +13,7 @@ _DEPS = randomInts.h
 DEPS = $(patsubst %,$(SDIR)/%,$(_DEPS)
 
 all: $(OBJ)
+	$(CC) $(CFLAGS) $(LIBS) $(SDIR)/randomFileGenerator.c $(SDIR)/readIntFile.c -o bin/randomFileGenerator
 	ar rcs libhw.a $^
 
 $(ODIR)/%.o: $(SRC)
@@ -20,3 +21,4 @@ $(ODIR)/%.o: $(SRC)
 
 clean:
 	rm -f obj/*
+	rm -f bin/*

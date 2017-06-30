@@ -5,7 +5,14 @@
 
 #define NDIGITS 3
 
-void readIntsFromFile(const char* filename, int n, int* array);
+typedef struct
+{
+	int n;
+	int *A;
+} randArray;
+
+
+randArray readIntsFromFile(const char* filename);
 void writeRandomFile(int n, const char* filename);
 
 #endif
