@@ -1,0 +1,78 @@
+
+***********************************
+Running p3 for file ../testCases/inp1.txt
+***********************************
+
+CUDA result: 51, 63, 94, 101, 130, 182, 189, 226, 267, 279, 284, 320, 383, 422, 492,  ...
+SEQ  result: 51, 63, 94, 101, 130, 182, 189, 226, 267, 279, 284, 320, 383, 422, 492,  ...
+
+
+Array is  sorted
+CUDA result matches sequential result
+
+n = 27
+
+***********************************
+Running p3 for file ../testCases/inp2.txt
+***********************************
+
+CUDA result: 0, 1, 1, 2, 3, 4, 4, 6, 10, 12, 13, 13, 14, 16, 17,  ...
+SEQ  result: 0, 1, 1, 2, 3, 4, 4, 6, 10, 12, 13, 13, 14, 16, 17,  ...
+
+
+Array is  sorted
+CUDA result matches sequential result
+
+n = 723
+
+***********************************
+Running p3 for file ../testCases/inp3.txt
+***********************************
+
+CUDA result: 0, 1, 2, 2, 2, 2, 3, 3, 3, 5, 5, 7, 7, 7, 7,  ...
+SEQ  result: 0, 1, 2, 2, 2, 2, 3, 3, 3, 5, 5, 7, 7, 7, 7,  ...
+
+
+Array is  sorted
+CUDA result matches sequential result
+
+n = 1824
+
+***********************************
+Running p3 for file ../testCases/inp4.txt
+***********************************
+
+CUDA result: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  ...
+SEQ  result: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  ...
+
+
+Array is  sorted
+CUDA result matches sequential result
+
+n = 239587
+
+***********************************
+Running p3 for file ../testCases/inp5.txt
+***********************************
+
+CUDA result: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  ...
+SEQ  result: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  ...
+
+
+Array is  sorted
+CUDA result matches sequential result
+
+n = 639587
+
+***********************************
+Running p3 for file ../testCases/inp6.txt
+***********************************
+
+CUDA result: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  ...
+SEQ  result: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  ...
+
+
+Array is  sorted
+CUDA result matches sequential result
+
+n = 1639587
