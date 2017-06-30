@@ -3,7 +3,7 @@
 #SBATCH -J ea26799_HW2_p1           
 # job name 
 
-#SBATCH -o ea26799_HW2_p1_%j       
+#SBATCH -o results_%j       
 # output and error file name (%j expands to jobID) 
 
 #SBATCH -n 1              
@@ -24,5 +24,4 @@
 #SBATCH --mail-type=end    
 # email me when the job finishes 
 
-#nvprof ./bin/p3.out
-./bin/p3.out
+nvprof ./bin/p3.out

@@ -12,4 +12,9 @@
 #define MIN(x,y) ((x<y)?x:y)
 #define MAX(x,y) ((x>y)?x:y)
 
+
+__global__ void radix_sort_kernel(int *A, int n, int nDigits);
+__global__ void parallel_merge_kernel(int *d_out, int *A, int treeLevel);
+
+
 #endif

@@ -17,3 +17,6 @@ all: $(OBJ)
 
 $(ODIR)/%.o: $(SRC)
 	$(CC) $(CFLAGS) $(LIBS) $(SDIR)/$*.c -c -o $@
+
+clean:
+	rm -f obj/*

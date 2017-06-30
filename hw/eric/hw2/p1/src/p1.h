@@ -1,3 +1,6 @@
+#ifndef _P1_H
+#define _P1_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
@@ -28,3 +31,5 @@ typedef struct {
 __global__ void last_digit_kernel(int * d_out, int * d_in);
 lastDigitResult last_digit_cuda(int *a, int n);
 lastDigitResult last_digit_seq(int* a, int n);
+
+#endif
