@@ -1,3 +1,6 @@
+#include "hw.h"
+
+
 int next_pow2(int n)
 {
 	if(n==0)
@@ -26,4 +29,13 @@ int checkSorted(int *A, int n)
 			return 0;
 	return 1;
 
+}
+
+void printArray(int *A, int n)
+{
+	printf("\n");
+	for(int i=0; i<n; i++)
+		printf("%d, ",A[i]);
+	printf("\b\b");
+	printf("\n");
 }

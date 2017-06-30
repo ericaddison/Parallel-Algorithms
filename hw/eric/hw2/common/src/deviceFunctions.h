@@ -1,6 +1,9 @@
 //***********************************************
 // Device convenience functions
 
+#ifndef _DEVICE_FUNCS
+#define _DEVICE_FUNCS
+
 __device__ inline int d_next_pow2(int n)
 {
     int nBits = 0;
@@ -31,3 +34,5 @@ __device__ int d_binary_search(int *A, int key, int n)
 	}
 	return (r<0)?0:ind+1;
 }
+
+#endif

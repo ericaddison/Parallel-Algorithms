@@ -18,5 +18,5 @@ $(ODIR)/%.o: $(SDIR)/%.cu
 	$(CC) $(NVCC_FLAGS) $(INCLUDE_DIRS) $(SDIR)/$*.cu -c -o $@
 
 submit: all
-	rm ea26799*
+	rm -f ea26799*
 	sbatch submit

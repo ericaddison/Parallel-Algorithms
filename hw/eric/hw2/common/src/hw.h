@@ -12,5 +12,6 @@
 // usefulFuncs.c functions
 int checkSorted(int *A, int n);
 int next_pow2(int n);
+void printArray(int *A, int n);
 
 #endif

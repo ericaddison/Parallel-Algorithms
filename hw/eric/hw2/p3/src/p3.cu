@@ -4,9 +4,9 @@ extern "C"
 	#include "randomInts.h"
 }
 
-#define MAX_THREADS 4
+#define MAX_THREADS 1024
 
-enum repeatCheck { check, noCheck };
+
 
 __device__ void d_hs_scan(int myId, int *A, int n, int initVal)
 {
@@ -66,9 +66,8 @@ __global__ void parallel_merge_kernel(int *d_out, int *A, int treeLevel)
     int mergeID = blockIdx.x/treeLevel;
     int n = treeLevel*blockDim.x;    
 
-	int offset = (mergeID/(2*treeLevel))*2*n;
+	int offset = (mergeID/2)*2*n;
 	int myInd = threadIdx.x +(blockIdx.x%treeLevel)*blockDim.x;
-	//printf("threadID=%d, blockId=%d, mergeID=%d, offset=%d, myInd=%d\n",threadIdx.x, blockIdx.x, mergeID, offset, myInd);
 	A = A+offset;
 	int *B = A+n;
 
@@ -96,7 +95,6 @@ __global__ void parallel_merge_kernel(int *d_out, int *A, int treeLevel)
 
 
 
-
 void cuda_radix_sort(int *A, int n, int nDigits)
 {
 	// pad array if less than a power of 2
@@ -118,40 +116,13 @@ void cuda_radix_sort(int *A, int n, int nDigits)
 	radix_sort_kernel<<<nBlocks,threadsPerBlock,2*threadsPerBlock*sizeof(int)>>>(d_A, threadsPerBlock, nDigits);
 	cudaThreadSynchronize();
 
-/*
-	// print A
-	printf("A: ");
-		cudaMemcpy(h_A, d_A, np2*sizeof(int), cudaMemcpyDeviceToHost);
-	for(int i=0; i<np2; i++)
-	{
-		if(i%MAX_THREADS==0 && i>0)
-			printf(" | ");
-		printf("%d, ",h_A[i]);
-	}
-	printf("\n");
-*/
 	// merge sorted blocks
 	int cnt=1;
-//	int nMerges = nBlocks;
 	while((nBlocks/cnt)>1)
 	{
-//		printf("merging round %d\n",cnt, nBlocks);
 		parallel_merge_kernel<<<nBlocks,threadsPerBlock>>>(d_B,d_A,cnt);
 		cudaThreadSynchronize();
-/*
-	// print B
-		printf("B: ");
-		cudaMemcpy(h_A, d_B, np2*sizeof(int), cudaMemcpyDeviceToHost);
-		for(int i=0; i<np2; i++)
-		{
-			if(i%(MAX_THREADS*cnt*2)==0 && i>0)
-				printf(" | ");
-			printf("%d, ",h_A[i]);
-		}
-		printf("\n");
-*/
 		cnt*=2;
-//		nMerges /= 2;
     // swap A and B
         int *d_C = d_A;
         d_A = d_B;
@@ -169,6 +140,29 @@ void cuda_radix_sort(int *A, int n, int nDigits)
 
 void seq_radix_sort(int *A, int n, int nDigits)
 {
+	int *B = (int*)malloc(n*sizeof(int));
+	if(nDigits%2)
+		nDigits++;
+	
+	for(int iDigit=0; iDigit<nDigits; iDigit++)
+	{
+		int radix = 1<<iDigit;
+		int l = 0;
+		int r = n-1;
+		for(int i=0; i<n; i++)
+		{
+			if(!(A[i]&radix))
+				B[l++] = A[i];
+			if(A[n-i-1]&radix)
+				B[r--] = A[n-i-1];
+		}
+
+		int *C = A;
+		A = B;
+		B = C;
+	}
+
+	free(B);
 
 }
 
@@ -176,14 +170,14 @@ void seq_radix_sort(int *A, int n, int nDigits)
 int main()
 {
 
-	int MAX_EXP = 5;
+	int MAX_EXP = 26;
     struct timeval t;
     gettimeofday(&t, NULL);
     srand(t.tv_usec);
     double exp = (MAX_EXP*( (double)rand()/(double)RAND_MAX));
     int n = (int)pow(2,exp); 
 	
-	printf("MAX_THREADS = %d\n",MAX_THREADS);
+	printf("\n\nMAX_THREADS = %d\n",MAX_THREADS);
 	printf("n = %d\n",n);
 
 	// make test array
@@ -191,23 +185,41 @@ int main()
 	writeRandomFile(n, "inp.txt");
 	readIntsFromFile("inp.txt",n,A);
 
-	printf("\n");
-	for(int i=0; i<n; i++)
-		printf("%d, ",h_A[i]);
-	printf("\n");
-
 	cuda_radix_sort(A, n, 10);
 
-	// print A
-	printf("A: ");
+	// seq sort for comparison
+	int* B = (int*)malloc(n*(sizeof(int)));
+	readIntsFromFile("inp.txt",n,B);
+	seq_radix_sort(B,n,10);
+
+	// print some results
+	printf("CUDA result: ");
+	for(int i=0; i<MIN(n,15); i++)
+		printf("%d, ",A[i]);
+	printf("\b\b ...\n");
+	printf("SEQ  result: ");
+	for(int i=0; i<MIN(n,15); i++)
+		printf("%d, ",A[i]);
+	printf("\b\b ...\n");
+
+
+
+// check results
+	printf("\n\nArray is %s sorted\n", (checkSorted(A,n)?"\b":"NOT"));
+
+	int errCnt=0;
 	for(int i=0; i<n; i++)
-		printf("%d, ",h_A[i]);
-	printf("\n");
-
-
-	printf("Array is %s sorted\n", (checkSorted(h_A,n)?"\b":"NOT"));
+	{
+		if(A[i]!=B[i])
+		{
+			printf("SORT disagreement at index %d\n",i);
+			errCnt++;
+		}	
+	}
+	printf("CUDA result matches sequential result\n\n");
 
 	free(A);
+	free(B);
 
 	
 }
