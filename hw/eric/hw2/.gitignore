@@ -5,3 +5,4 @@ myGPU*
 *.swp
 inp.txt
 results*
+*.a

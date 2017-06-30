@@ -3,7 +3,7 @@
 #SBATCH -J ea26799_HW2_p1           
 # job name 
 
-#SBATCH -o ea26799_HW2_p1_%j       
+#SBATCH -o results_%j       
 # output and error file name (%j expands to jobID) 
 
 #SBATCH -n 1              
