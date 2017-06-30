@@ -79,61 +79,63 @@ void seq_radix_sort(int *A, int n, int nDigits)
 
 }
 
+//***********************************************
+// Main function
 
-int main()
+int main(int argc, char** argv)
 {
 
-	int MAX_EXP = 26;
-    struct timeval t;
-    gettimeofday(&t, NULL);
-    srand(t.tv_usec);
-    double exp = (MAX_EXP*( (double)rand()/(double)RAND_MAX));
-    int n = (int)pow(2,exp); 
-	
-	printf("\n\nMAX_THREADS = %d\n",MAX_THREADS);
-	printf("n = %d\n",n);
+	if(argc<2)
+		printf("No input files specified\n\n");
 
-	// make test array
-	int* A = (int*)malloc(n*(sizeof(int)));
-	writeRandomFile(n, "inp.txt");
-	readIntsFromFile("inp.txt",n,A);
+	for(int i=1; i<argc; i++)
+	{
+		char* nextFile = argv[i];
+		printf("\n***********************************\n");
+		printf("Running p3 for file %s\n",nextFile);
+		printf("***********************************\n\n");
 
-	cuda_radix_sort(A, n, 10);
+	//  read array file
+	   	randArray ra = readIntsFromFile(nextFile);
+		int* A = ra.A;
+		int n = ra.n;
+
+	// call CUDA redix sort
+		cuda_radix_sort(A, n, 10);
 
 	// seq sort for comparison
-	int* B = (int*)malloc(n*(sizeof(int)));
-	readIntsFromFile("inp.txt",n,B);
-	seq_radix_sort(B,n,10);
+	   	randArray rb = readIntsFromFile(nextFile);
+		int* B = rb.A;
+		seq_radix_sort(B,n,10);
 
 	// print some results
-	printf("CUDA result: ");
-	for(int i=0; i<MIN(n,15); i++)
-		printf("%d, ",A[i]);
-	printf("\b\b ...\n");
-	printf("SEQ  result: ");
-	for(int i=0; i<MIN(n,15); i++)
-		printf("%d, ",A[i]);
-	printf("\b\b ...\n");
+		printf("CUDA result: ");
+		for(int i=0; i<MIN(n,15); i++)
+			printf("%d, ",A[i]);
+		printf("\b\b ...\n");
+		printf("SEQ  result: ");
+		for(int i=0; i<MIN(n,15); i++)
+			printf("%d, ",A[i]);
+		printf("\b\b ...\n");
 
+	// check results
+		printf("\n\nArray is %s sorted\n", (checkSorted(A,n)?"\b":"NOT"));
 
-
-// check results
-	printf("\n\nArray is %s sorted\n", (checkSorted(A,n)?"\b":"NOT"));
-
-	int errCnt=0;
-	for(int i=0; i<n; i++)
-	{
-		if(A[i]!=B[i])
+		int errCnt=0;
+		for(int i=0; i<n; i++)
 		{
-			printf("SORT disagreement at index %d\n",i);
-			errCnt++;
-		}	
+			if(A[i]!=B[i])
+			{
+				printf("SORT disagreement at index %d\n",i);
+				errCnt++;
+			}	
+		}
+		printf("CUDA result matches sequential result\n\n");
+		printf("n = %d\n",n);
+
+		free(A);
+		free(B);
 	}
-	printf("CUDA result matches sequential result\n\n");
-
-	free(A);
-	free(B);
-
-	
+	return 0;
 }
 
