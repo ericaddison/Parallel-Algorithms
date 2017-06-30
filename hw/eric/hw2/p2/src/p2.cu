@@ -23,7 +23,7 @@ typedef struct {
 /**
  * range_count_cuda
  * Host-side function to set up and launch CUDA range_count kernel.
- * This function first calls the rance_count_kernel for as many 
+ * This function first calls the range_count_kernel for as many 
  * blocks as necessary, and then reduces the resulting histograms
  * repeatedly until all have been aggregated.
  *
