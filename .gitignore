@@ -2,4 +2,4 @@
 *.ps
 *.dvi
 *.log
-*.odp*
+.~lock*
