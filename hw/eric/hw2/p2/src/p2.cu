@@ -109,23 +109,21 @@ result range_count_seq(int* a, int n)
 int main(int argc, char** argv)
 {
 
-// run through several times for run time stats
-	
-	const int NRUNS = 1;
-    struct timeval t;
-    gettimeofday(&t, NULL);
-    srand(t.tv_usec);
-    double exp = (26.0*( (double)rand()/(double)RAND_MAX));
-    int n = (int)pow(2,exp); 
-	int errCnt = 0;
-	
-	for(int irun=0; irun<NRUNS; irun++)
-	{
-		int* h_A = (int*)malloc(n*(sizeof(int)));
+	if(argc<2)
+		printf("No input files specified\n\n");
 
-	// make test array
-		writeRandomFile(n, "inp.txt");
-	   	readIntsFromFile("inp.txt",n,h_A);
+	for(int i=1; i<argc; i++)
+	{
+		char* nextFile = argv[i];
+		printf("\n***********************************\n");
+		printf("Running p2 for file %s\n",nextFile);
+		printf("***********************************\n\n");
+
+	//  read array file
+	   	randArray ra = readIntsFromFile(nextFile);
+		int* h_A = ra.A;
+		int n = ra.n;
+		int errCnt = 0;
 
 	// get global memory CUDA result
 		result cudaGlobalResult = range_count_cuda(h_A, n, 0);
@@ -137,7 +135,7 @@ int main(int argc, char** argv)
 		result seqResult = range_count_seq(h_A, n);
 
 	// print results
-		printf("\nrun SEQ_H    CUDA_G_H CUDA_S_H  |  SEQ_CM  CUDA_G_CM  CUDA_S_CM\n");
+		printf("\nbin SEQ_H    CUDA_G_H CUDA_S_H  |  SEQ_CM  CUDA_G_CM  CUDA_S_CM\n");
 		printf("---------------------------------------------------------\n");
 		for(int i=0; i<10; i++)
 		{
@@ -165,8 +163,10 @@ int main(int argc, char** argv)
 		free(cudaSharedResult.histogram);
 		free(cudaSharedResult.scan);
 		free(cudaGlobalResult.scan);
+
+		printf("n = %d\nerrCnt = %d\n",n,errCnt);
+		printf("Done with file %s\n\n",nextFile);
 	}
 
-	printf("n = %d\nerrCnt = %d\n",n,errCnt);
     return 0;
 }

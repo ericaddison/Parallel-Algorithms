@@ -24,4 +24,4 @@
 #SBATCH --mail-type=end    
 # email me when the job finishes 
 
-nvprof ./bin/p2.out
+./bin/p2.out ../testCases/inp*
