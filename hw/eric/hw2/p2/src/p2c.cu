@@ -13,22 +13,22 @@
  */
 __global__ void hs_scan_kernel(int *A, int n)
 {
-	extern __shared__ int sdata[];
-	int myId = threadIdx.x + blockIdx.x * blockDim.x;
+    extern __shared__ int sdata[];
+    int myId = threadIdx.x + blockIdx.x * blockDim.x;
 
-	int myVal = A[myId];
-	sdata[myId] = A[myId];
-	__syncthreads();
+    int myVal = A[myId];
+    sdata[myId] = A[myId];
+    __syncthreads();
 
-	for(int s=1; s<n; s*=2)
-	{
-		if(myId>=s)
-			myVal = sdata[myId] + sdata[myId-s];
-		__syncthreads();
-		sdata[myId] = myVal;
-		__syncthreads();
-	}
+    for(int s=1; s<n; s*=2)
+    {
+        if(myId>=s)
+            myVal = sdata[myId] + sdata[myId-s];
+        __syncthreads();
+        sdata[myId] = myVal;
+        __syncthreads();
+    }
 
-	A[myId] = myVal;
+    A[myId] = myVal;
 
 }

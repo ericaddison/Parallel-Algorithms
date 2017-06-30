@@ -2,7 +2,8 @@
  *   readIntFile.c
  *     Reads a comma separated list of integers from file.
  *       Assume list is small enough to fit in memory
- *       */
+ *       
+ */
 
 
 #include "randomInts.h"
@@ -13,7 +14,7 @@ int getNextInt(FILE* fp)
   char c;
   char newnum[NDIGITS+1];
   for(int i=0; i<=NDIGITS; i++)
-	newnum[i] = 0;
+    newnum[i] = 0;
   int i=0;
   while( (c=fgetc(fp))!=',' && c!=EOF )
     newnum[i++] = c;
@@ -54,8 +55,8 @@ randArray readIntsFromFile(const char* filename)
 
 void writeRandomFile(int n, const char* filename)
 {
-	struct timeval t;
-	gettimeofday(&t, NULL);	
+    struct timeval t;
+    gettimeofday(&t, NULL);    
     srand(t.tv_usec);
 
     int nMax = (int)pow(10,NDIGITS);

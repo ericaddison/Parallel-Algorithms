@@ -22,31 +22,31 @@
  */
 __global__ void radix_sort_kernel(int *A, int n, int nDigits)
 {
-	extern __shared__ int sdata[];
-	int *left = sdata;
-	int *right = sdata+n;
-	int offset = blockIdx.x * blockDim.x;
-	int tid = threadIdx.x;
-	int myId = tid + offset;
+    extern __shared__ int sdata[];
+    int *left = sdata;
+    int *right = sdata+n;
+    int offset = blockIdx.x * blockDim.x;
+    int tid = threadIdx.x;
+    int myId = tid + offset;
 
 // loop over all binary digits
-	for(int iDigit=0; iDigit<nDigits; iDigit++)
-	{
-		int myVal = A[myId];
-		int radix = 1<<iDigit;
-		left[tid] = !(myVal&radix);
-		right[tid] = !(left[tid]);
-		__syncthreads();
-	
-	// scan
-		d_hs_scan(tid, left, n, 0);
-		d_hs_scan(tid, right, n, left[n-1]);
+    for(int iDigit=0; iDigit<nDigits; iDigit++)
+    {
+        int myVal = A[myId];
+        int radix = 1<<iDigit;
+        left[tid] = !(myVal&radix);
+        right[tid] = !(left[tid]);
+        __syncthreads();
+    
+    // scan
+        d_hs_scan(tid, left, n, 0);
+        d_hs_scan(tid, right, n, left[n-1]);
 
-	// scatter
-		int index = (myVal&radix)?(right[tid]-1):(left[tid]-1);
-		A[index+offset] = myVal;
-		__syncthreads();
-	}
+    // scatter
+        int index = (myVal&radix)?(right[tid]-1):(left[tid]-1);
+        A[index+offset] = myVal;
+        __syncthreads();
+    }
 }
 
 
@@ -75,30 +75,30 @@ __global__ void parallel_merge_kernel(int *d_out, int *A, int iter)
     int mergeID = blockIdx.x/iter;
     int n = iter*blockDim.x;    
 
-	int offset = (mergeID/2)*2*n;
-	int myInd = threadIdx.x +(blockIdx.x%iter)*blockDim.x;
-	A = A+offset;
-	int *B = A+n;
+    int offset = (mergeID/2)*2*n;
+    int myInd = threadIdx.x +(blockIdx.x%iter)*blockDim.x;
+    A = A+offset;
+    int *B = A+n;
 
 // swap A and B if this is an odd block
-	if(mergeID%2)
-	{
-		int *C = A;
-		A = B;
-		B = C;
-	}
-		
-	int otherInd = d_binary_search(B, A[myInd], n);
-	int mergedIndex = myInd + otherInd;
-	int nRepeats=0;
+    if(mergeID%2)
+    {
+        int *C = A;
+        A = B;
+        B = C;
+    }
+        
+    int otherInd = d_binary_search(B, A[myInd], n);
+    int mergedIndex = myInd + otherInd;
+    int nRepeats=0;
 
 // sensitive to repeated elements if an odd block
-	if(mergeID%2)
-	{
-	 	nRepeats = otherInd - d_binary_search(B,A[myInd]-1,n);		
-		mergedIndex -= nRepeats;
-	}
+    if(mergeID%2)
+    {
+         nRepeats = otherInd - d_binary_search(B,A[myInd]-1,n);        
+        mergedIndex -= nRepeats;
+    }
 
-	d_out[mergedIndex+offset] = A[myInd];	
+    d_out[mergedIndex+offset] = A[myInd];    
 }
 

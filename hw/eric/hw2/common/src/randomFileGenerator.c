@@ -13,7 +13,7 @@ int main(int argc, char** argv)
 
     if(argc==1)
     {
-    	printf(USAGE);
+        printf(USAGE);
         return 1;
     }
 
@@ -28,7 +28,7 @@ int main(int argc, char** argv)
     else
         sprintf(filename,"randomInts_%d.dat",n);
 
-	writeRandomFile(n, filename);
+    writeRandomFile(n, filename);
 
     return 0;
 }

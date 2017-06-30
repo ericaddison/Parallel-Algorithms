@@ -3,19 +3,19 @@
 
 int next_pow2(int n)
 {
-	if(n==0)
-		return 0;
-	
-	// check if already a power of 2
-	if(!(n&(n-1)))
-		return n;
+    if(n==0)
+        return 0;
+    
+// check if already a power of 2
+    if(!(n&(n-1)))
+        return n;
 
-	// find and return next power of 2
+// find and return next power of 2
     int nextPow2 = 1;
-	do
-	{	
-		nextPow2 <<= 1;
-	}while( n>>=1 );
+    do
+    {    
+        nextPow2 <<= 1;
+    }while( n>>=1 );
 
     return nextPow2;
 }
@@ -24,18 +24,18 @@ int next_pow2(int n)
 int checkSorted(int *A, int n)
 {
 
-	for(int i=1; i<n; i++)
-		if(A[i]<A[i-1])
-			return 0;
-	return 1;
+    for(int i=1; i<n; i++)
+        if(A[i]<A[i-1])
+            return 0;
+    return 1;
 
 }
 
 void printArray(int *A, int n)
 {
-	printf("\n");
-	for(int i=0; i<n; i++)
-		printf("%d, ",A[i]);
-	printf("\b\b");
-	printf("\n");
+    printf("\n");
+    for(int i=0; i<n; i++)
+        printf("%d, ",A[i]);
+    printf("\b\b");
+    printf("\n");
 }

@@ -7,8 +7,8 @@
 
 typedef struct
 {
-	int n;
-	int *A;
+    int n;
+    int *A;
 } randArray;
 
 
