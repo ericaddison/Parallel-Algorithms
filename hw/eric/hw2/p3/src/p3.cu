@@ -43,7 +43,7 @@ void radix_sort_cuda(int *A, int n, int nDigits)
 	int threadsPerBlock = MIN(MAX_THREADS,np2);
 
 // launch radix kernel
-	radix_sort_cuda<<<nBlocks,threadsPerBlock,2*threadsPerBlock*sizeof(int)>>>(d_A, threadsPerBlock, nDigits);
+	radix_sort_kernel<<<nBlocks,threadsPerBlock,2*threadsPerBlock*sizeof(int)>>>(d_A, threadsPerBlock, nDigits);
 	cudaThreadSynchronize();
 
 // merge sorted blocks
