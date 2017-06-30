@@ -1,8 +1,18 @@
-//***********************************************
-// Problem 1a functions: reduce-min
-
+/**
+ * Problem 1a functions: reduce-min
+ */
 #include "p1.h"
 
+
+/**
+ * reduce_min_kernel
+ * The CUDA kernel for running reduce with a min operator.
+ * Simple binary-tree style implementation.
+ *
+ * @param B result array. Should be same size as A
+ * @param A input array
+ * @param n size of input array A
+ */
 __global__ void reduce_min_kernel(int * B, int * A, int n)
 {
     int myId = threadIdx.x + blockIdx.x * blockDim.x;
@@ -22,6 +32,14 @@ __global__ void reduce_min_kernel(int * B, int * A, int n)
 }
 
 
+/**
+ * find_min_cuda
+ * Host-side function to set up and launch CUDA min kernel.
+ *
+ * @param a input array
+ * @param n size of input array a
+ * @return minResult struct holding minimum of input array
+ */
 minResult find_min_cuda(int *a, int n)
 {
 
@@ -74,6 +92,14 @@ minResult find_min_cuda(int *a, int n)
 }
 
 
+/**
+ * find_min_seq
+ * Sequential implementation of find min. Simple O(n) loop.
+ *
+ * @param a input array
+ * @param n size of input array a
+ * @return minResult struct holding minimum of input array
+ */
 minResult find_min_seq(int* a, int n)
 {
 	int min = INT_MAX;

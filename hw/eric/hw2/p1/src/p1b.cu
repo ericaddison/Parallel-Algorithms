@@ -2,6 +2,14 @@
 // Problem 1b functions: last-digit O(1)
 #include "p1.h"
 
+/**
+ * last_digit_kernel
+ * The CUDA kernel for mapping the last base-10 digit of 
+ * the element of an array to a new array.
+ *
+ * @param d_out result array. Should be same size as d_in
+ * @param d_in input array.
+ */
 __global__ void last_digit_kernel(int * d_out, int * d_in)
 {
     int myId = threadIdx.x + blockDim.x * blockIdx.x;
@@ -9,6 +17,14 @@ __global__ void last_digit_kernel(int * d_out, int * d_in)
 }
 
 
+/**
+ * last_digit_cuda
+ * Host-side function to set up and launch CUDA last digit kernel.
+ *
+ * @param a input array
+ * @param n size of input array a
+ * @return lastDigitResult struct holding minimum of input array
+ */
 lastDigitResult last_digit_cuda(int *a, int n)
 {
 
@@ -41,7 +57,14 @@ lastDigitResult last_digit_cuda(int *a, int n)
 }
 
 
-
+/**
+ * last_digit_seq
+ * Sequential implementation of last digit mapping. Simple O(n) loop.
+ *
+ * @param a input array
+ * @param n size of input array a
+ * @return lastDigitResult struct holding minimum of input array
+ */
 lastDigitResult last_digit_seq(int* a, int n)
 {
 	int* b = (int*)malloc(n*sizeof(int));

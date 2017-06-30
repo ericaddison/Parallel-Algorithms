@@ -5,6 +5,15 @@ extern "C"
 }
 
 
+/**
+ * run_p1a
+ * Run problem 1a by reading input array from file, calling
+ * CUDA find_min implementation, sequential find_min, and 
+ * comparing results. Results are printed to STDOUT.
+ * All allocated memory is freed.
+ *
+ * @param filename path to input file
+ */
 void run_p1a(const char* filename)
 {
 	int errCnt = 0;
@@ -36,6 +45,16 @@ void run_p1a(const char* filename)
 }
 
 
+
+/**
+ * run_p1b
+ * Run problem 1b by reading input array from file, calling
+ * CUDA last-digit implementation, sequential last-digit, and 
+ * comparing results. Results are printed to STDOUT.
+ * All allocated memory is freed.
+ *
+ * @param filename path to input file
+ */
 void run_p1b(const char* filename)
 {
 
@@ -77,9 +96,17 @@ void run_p1b(const char* filename)
 	printf("p1b: n = %d\nerrCnt = %d\n",n,errCnt);
 }
 
-//***********************************************
-// Main function
 
+
+/**
+ * main
+ * Main function for problem 1. Expects paths to input
+ * files as command line arguments. Loops through 
+ * paths and calls p1a and p1b for each file.
+ *
+ * @param argc number of command line arguments
+ * @param argv command line argument strings
+ */
 int main(int argc, char** argv)
 {
 
