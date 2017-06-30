@@ -1,5 +1,6 @@
-//***********************************************
-// Problem 1b functions: last-digit O(1)
+/**
+ * Problem 1b functions: last-digit O(1)
+ */
 #include "p1.h"
 
 /**

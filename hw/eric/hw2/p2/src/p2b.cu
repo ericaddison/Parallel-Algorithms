@@ -1,8 +1,28 @@
-//***********************************************
-// Problem 2b functions: use shared memory
-
+/**
+ * Problem 2b functions: use shared memory
+ */
 #include "p2.h"
 
+
+/**
+ * range_count_kernel_shared
+ * The CUDA kernel for creating a fixed-bin histogram with 
+ * bins 0-99, 100-199, ..., 900-999.
+ * 
+ * This kernel uses shared memory to compute histogram results.
+ * 
+ * This kernel should be called with a 2D array of blocks, with
+ * 10 blocks along the y dimension. Each set of blocks along 
+ * the y dimension are respondible for computing the count in
+ * one of the histogram bins.
+ * 
+ * This kernel expects to have shared memory of size n*sizeof(int)
+ * avaialble.
+ *
+ * @param count interim result array. Holds histogram result for each x-block
+ * @param A input array
+ * @param n size of input array A
+ */
 __global__ void range_count_kernel_shared(int * count, int * A, int n)
 {
 	extern __shared__ int sdata[];
@@ -29,6 +49,17 @@ __global__ void range_count_kernel_shared(int * count, int * A, int n)
 }
 
 
+/**
+ * reduce_add_kernel_shared
+ * CUDA kernel for recude-add in shared memory. This is specific
+ * for reducing the results of the interim histograms from 
+ * the range_count_kernel_global function. Calling should be 
+ * similar, i.e. blockIdx.y determines which bin will be reduced.
+ *
+ * @param B result array
+ * @param A input array
+ * @param n size of input array
+ */
 __global__ void reduce_add_kernel_shared(int * B, int * A, int n)
 {
 	extern __shared__ int sdata[];

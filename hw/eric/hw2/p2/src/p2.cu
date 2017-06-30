@@ -1,3 +1,6 @@
+/**
+ * Problem 2: histogram and CDF
+ */
 #include "p2.h"
 extern "C"
 {
@@ -6,15 +9,29 @@ extern "C"
 
 #define MAX_THREADS 1024
 
+/**
+ * result struct to hold both histogram and scan results
+ * of a call to one part of problem 2.
+ */
 typedef struct {
     int* histogram;
 	int* scan;
 } result;
 
 
-//***********************************************
-// Host calling functions
 
+/**
+ * range_count_cuda
+ * Host-side function to set up and launch CUDA range_count kernel.
+ * This function first calls the rance_count_kernel for as many 
+ * blocks as necessary, and then reduces the resulting histograms
+ * repeatedly until all have been aggregated.
+ *
+ * @param a input array
+ * @param n size of input array a
+ * @param shared flag whether to call kernel using shared memory, 
+ * @return result struct holding histogram and CDF results
+ */
 result range_count_cuda(int *a, int n, const int shared)
 {
 
@@ -86,6 +103,15 @@ result range_count_cuda(int *a, int n, const int shared)
 }
 
 
+
+/**
+ * range_count_seq
+ * Sequential implementation of range_count (i.e. histogram)
+ * 
+ * @param a input array
+ * @param n size of input array a
+ * @return result struct holding histogram and CDF results
+ */
 result range_count_seq(int* a, int n)
 {
 	int* hist = (int*)calloc(10,sizeof(int));
@@ -103,9 +129,18 @@ result range_count_seq(int* a, int n)
 }
 
 
-//***********************************************
-// Main function
 
+/**
+ * main
+ * Main function for problem 2. Expects paths to input
+ * files as command line arguments. Loops through 
+ * paths and calls range_count for CUDA global, CUDA shared,
+ * and sequential algorithms and compares.
+ * Results are printed to STDOUT.
+ *
+ * @param argc number of command line arguments
+ * @param argv command line argument strings
+ */
 int main(int argc, char** argv)
 {
 
