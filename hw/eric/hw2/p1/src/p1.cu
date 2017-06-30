@@ -5,18 +5,14 @@ extern "C"
 }
 
 
-void run_p1a(const int n, const int NRUNS)
+void run_p1a(const char* filename)
 {
 	int errCnt = 0;
-	printf("\nrun SEQ  CUDA\n-----------------\n");
 
-	for(int irun=0; irun<NRUNS; irun++)
-	{
-		int* h_A = (int*)malloc(n*(sizeof(int)));
-
-	// make test array
-		writeRandomFile(n, "inp.txt");
-	   	readIntsFromFile("inp.txt",n,h_A);
+	//  read array file
+	   	randArray ra = readIntsFromFile(filename);
+		int* h_A = ra.A;
+		int n = ra.n;
 
 	// get CUDA result
 		minResult cudaMinResult = find_min_cuda(h_A, n);
@@ -25,7 +21,7 @@ void run_p1a(const int n, const int NRUNS)
 		minResult seqMinResult = find_min_seq(h_A, n);
 
 	// print results
-		printf(" %d  %3d %3d",irun, seqMinResult.minVal, cudaMinResult.minVal);
+		printf("Seq  min: %3d\nCUDA min: %3d", seqMinResult.minVal, cudaMinResult.minVal);
 		if( seqMinResult.minVal!=cudaMinResult.minVal)
 		{
 			printf ("  XXX");
@@ -35,23 +31,19 @@ void run_p1a(const int n, const int NRUNS)
 
 	// free array memory
 		free(h_A);
-	}
 
 	printf("p1a: n = %d\nerror Count = %d\n\n",n,errCnt);
 }
 
 
-void run_p1b(const int n, const int NRUNS)
+void run_p1b(const char* filename)
 {
 
 	int errCnt=0;
-	for(int irun=0; irun<NRUNS; irun++)
-	{
-		int* h_A = (int*)malloc(n*(sizeof(int)));
-
-	// make test array
-		writeRandomFile(n, "inp.txt");
-	   	readIntsFromFile("inp.txt",n,h_A);
+	//  read array file
+	   	randArray ra = readIntsFromFile(filename);
+		int* h_A = ra.A;
+		int n = ra.n;
 
 	// get CUDA result
 		lastDigitResult cudaDigitResult = last_digit_cuda(h_A, n);
@@ -60,11 +52,11 @@ void run_p1b(const int n, const int NRUNS)
 		lastDigitResult seqDigitResult = last_digit_seq(h_A, n);
 
 	// print results
-		printf("%d:  seq: ",irun);
+		printf("seq: ");
 		for(int i=0; i<10; i++)
 			printf("%d, ",seqDigitResult.lastDigit[i]);
 		printf("\b\b ...\n");
-		printf("%d: CUDA: ",irun);
+		printf("CUDA: ");
 		for(int i=0; i<10; i++)
 			printf("%d, ",cudaDigitResult.lastDigit[i]);
 		printf("\b\b ...");
@@ -81,7 +73,6 @@ void run_p1b(const int n, const int NRUNS)
 		free(h_A);
 		free(cudaDigitResult.lastDigit);
 		free(seqDigitResult.lastDigit);
-	}
 
 	printf("p1b: n = %d\nerrCnt = %d\n",n,errCnt);
 }
@@ -92,18 +83,24 @@ void run_p1b(const int n, const int NRUNS)
 int main(int argc, char** argv)
 {
 
-	const int NRUNS = 10;
-    struct timeval t;
-    gettimeofday(&t, NULL);
-    srand(t.tv_usec);
-	double exp = (26.0*( (double)rand()/(double)RAND_MAX));
-	int n = (int)pow(2,exp);
+	if(argc<2)
+		printf("No input files specified\n\n");
 
-// p1a: find min
-	run_p1a(n, NRUNS);
+	for(int i=1; i<argc; i++)
+	{
+		char* nextFile = argv[i];
+		printf("\n***********************************\n");
+		printf("Running p1 for file %s\n",nextFile);
+		printf("***********************************\n\n");
+	
+	// p1a: find min
+		run_p1a(nextFile);
 
-// p1b: digits
-	run_p1b(n, NRUNS);
+	// p1b: digits
+		run_p1b(nextFile);
+		
+		printf("Done with file %s\n\n",nextFile);
+	}
 
    return 0;
 }
