@@ -1,0 +1,8 @@
+ea26799*
+*.out
+*.o
+myGPU*
+*.swp
+inp.txt
+results*
+*.a
