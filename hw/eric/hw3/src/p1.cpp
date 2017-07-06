@@ -38,17 +38,17 @@ bool dimensionCheck(int rank, int size, Matrix *A, ColVector *x)
   return true;
 }
 
-void sendVector(int rank, int size, ColVector* x)
+void sendVector(int rank, int size, ColVector** x)
 {
     // proc0 broadcast vector values
-    int* vector = (rank==0) ? x->getValueBuffer() : new int[size];
+    int* vector = (rank==0) ? (*x)->getValueBuffer() : new int[size];
     MPI_Bcast(vector, size, MPI_INT, 0, MPI_COMM_WORLD);
 
     // other procs create vector
     if(rank>0)
     {
-      x = new ColVector(size, vector);
-      cout << "Rank " << rank << " received vector " << x << endl;
+      *x = new ColVector(size, vector);
+      cout << "Rank " << rank << " received vector " << *x << endl;
     }
 }
 
@@ -77,8 +77,8 @@ int main(int argc, char** argv)
   string vectorFile = string(argv[2]);
 
   // proc0 read files and broadcast vector size
-  Matrix* A;
-  ColVector* x;
+  Matrix* A = NULL;
+  ColVector* x = NULL;
   int vecSize = readFiles(world_rank, &A, &x, matrixFile, vectorFile);
   MPI_Bcast(&vecSize, 1, MPI_INT, 0, MPI_COMM_WORLD);
   cout << "Rank " << world_rank << " received vecsize " << vecSize << endl;
@@ -88,7 +88,7 @@ int main(int argc, char** argv)
     return 0;
 
   // send the vector
-  sendVector(world_rank, vecSize, x);
+  sendVector(world_rank, vecSize, &x);
 
   // proc0 send out matrix rows
   int nRowsMax = vecSize/world_size+1;
@@ -114,7 +114,7 @@ int main(int argc, char** argv)
   cout << "Rank " << world_rank << " will process " << nRows << " rows\n";
 
   // cleanup
-  //delete x;
+  delete x;
   delete A;
   MPI_Finalize();
 
