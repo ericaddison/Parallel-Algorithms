@@ -7,6 +7,8 @@ using std::ifstream;
 using std::ostream;
 using std::cout;
 
+class ColVector;
+
 class Matrix
 {
 
@@ -27,12 +29,13 @@ class Matrix
 
     int operator()(unsigned row, unsigned col) const {return values[col + n*row];};
     int& operator()(unsigned row, unsigned col) {return values[col + n*row];};
-    Matrix& operator*(Matrix& m);
+    Matrix operator*(Matrix& m);
+    ColVector operator*(ColVector& v);
 
     // holy trinity: dtor, copy ctor, assigment operator
     ~Matrix();
     Matrix(const Matrix& m);
-    Matrix& operator=(const Matrix& m) {return *(new Matrix(m));};
+    Matrix operator=(const Matrix& m) {return Matrix(m);};
 
 
   private:

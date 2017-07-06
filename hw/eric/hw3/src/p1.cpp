@@ -13,9 +13,14 @@ int readFiles(int rank, Matrix &A, ColVector &x, string matrixFile, string vecto
 {
   if(rank==0)
   {
-    cout << "Rank 0 reading files " << matrixFile << " and " << vectorFile << endl;
+    //cout << "Rank 0 reading files " << matrixFile << " and " << vectorFile << endl;
     A.readFromFile(matrixFile);
     x.readFromFile(vectorFile, true);
+
+    cout << "True answer b = \n";
+    (A*x).print();
+    cout << endl;
+
     if(A.getColumnCount()==x.getCount())
       return x.getCount();
   }
@@ -36,7 +41,7 @@ bool dimensionCheck(int rank, int size)
 
 void sendVector(int rank, int size, ColVector& x)
 {
-    // proc0 broadcast vector values
+    // rank0 broadcast vector values
     int* vector = (rank==0) ? x.getValueBuffer() : new int[size];
     MPI_Bcast(vector, size, MPI_INT, 0, MPI_COMM_WORLD);
 
@@ -45,8 +50,35 @@ void sendVector(int rank, int size, ColVector& x)
     {
       x.m = size;
       x.setValueBuffer(vector);
-      cout << "Rank " << rank << " received vector " << &x << endl;
     }
+}
+
+void sendMatrixRows(int rank, int world_size, Matrix &A)
+{
+  int nRowsMax = A.n/world_size+1;
+  int nRows = nRowsMax - (rank >= nRowsMax*world_size - A.n);
+  A.m = nRows;
+
+  if(rank==0)
+  {
+    int rowCnt = nRows;
+    for(int iRank=1; iRank<world_size; iRank++)
+    {
+      int newNrows = nRowsMax - (iRank >= nRowsMax*world_size - A.n);
+      int* rows = A.getValueBuffer() + rowCnt*A.getColumnCount();
+      //cout << "sending " << newNrows << " rows => " << newNrows*A.getColumnCount() << " ints\n";
+      MPI_Send(rows, newNrows*A.getColumnCount(), MPI_INT, iRank, 0, MPI_COMM_WORLD);
+      rowCnt += newNrows;
+    }
+  }
+  else
+  {
+    int* matrix = new int[nRows*A.n];
+    MPI_Recv(matrix, nRows*A.n, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    A.setValueBuffer(matrix);
+  }
+  //cout << "Rank " << rank << " will process " << nRows << " rows\n";
+
 }
 
 
@@ -73,44 +105,55 @@ int main(int argc, char** argv)
   string matrixFile = string(argv[1]);
   string vectorFile = string(argv[2]);
 
-  // proc0 read files and broadcast vector size
+  // rank0 read files and broadcast vector size
   Matrix A(0,0);
   ColVector x(0);
-  int vecSize = readFiles(world_rank, &A, &x, matrixFile, vectorFile);
+  int vecSize = readFiles(world_rank, A, x, matrixFile, vectorFile);
+  int finalSize = A.m;
   MPI_Bcast(&vecSize, 1, MPI_INT, 0, MPI_COMM_WORLD);
-  cout << "Rank " << world_rank << " received vecsize " << vecSize << endl;
+  A.n = vecSize;
+  //cout << "Rank " << world_rank << " received vecsize " << vecSize << endl;
 
   // dimension mismatch check
-  if(!dimensionCheck(world_rank, vecSize, A, x))
+  if(!dimensionCheck(world_rank, vecSize))
     return 0;
 
   // send the vector
-  sendVector(world_rank, vecSize, &x);
+  sendVector(world_rank, vecSize, x);
 
-  // proc0 send out matrix rows
-  int nRowsMax = vecSize/world_size+1;
-  int nRows = nRowsMax - (world_rank >= nRowsMax*world_size - vecSize);
+  // rank0 send out matrix rows
+  sendMatrixRows(world_rank, world_size, A);
+
+  // process matrix rows
+  ColVector result = A*x;
+
+  // send results back to rank0
   if(world_rank==0)
   {
-    int rowCnt = nRows;
-    for(int iRank=1; iRank<world_size; iRank++)
-    {
-      int newNrows = nRowsMax - (iRank >= nRowsMax*world_size - vecSize);
-      int* rows = A.getValueBuffer() + rowCnt*A.getColumnCount();
-      cout << "sending " << newNrows << " rows => " << newNrows*A.getColumnCount() << " ints\n";
-      MPI_Send(rows, newNrows*A.getColumnCount(), MPI_INT, iRank, 0, MPI_COMM_WORLD);
-      rowCnt += newNrows;
-    }
+      ColVector b(finalSize);
+      int cnt = 0;
+
+      // copy in local results
+      for(int i=0; i<result.getCount(); i++)
+        b(cnt++) = result(i);
+
+      // recieve worker results
+      int nRowsMax = A.n/world_size+1;
+      for(int iRank=1; iRank<world_size; iRank++)
+      {
+        int newNrows = nRowsMax - (iRank >= nRowsMax*world_size - A.n);
+        int* target = b.getValueBuffer() + cnt;
+        MPI_Recv(target, newNrows, MPI_INT, iRank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        cnt += newNrows;
+      }
+
+      b.print();
   }
   else
   {
-    int* matrix = new int[nRows*vecSize];
-    MPI_Recv(matrix, nRows*vecSize, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    A.m = nRows;
-    A.n = vecSize;
-    A.setValueBuffer(matrix);
+    MPI_Send(result.getValueBuffer(), result.getCount(), MPI_INT, 0, 0, MPI_COMM_WORLD);
   }
-  cout << "Rank " << world_rank << " will process " << nRows << " rows\n";
+
 
   // cleanup
   MPI_Finalize();

@@ -70,14 +70,14 @@ void Matrix::readFromFile(string filename, bool vector)
 
 }
 
-Matrix& Matrix::operator*(Matrix& B)
+Matrix Matrix::operator*(Matrix& B)
 {
   Matrix A = *(this);
 
   if(A.n!=B.m)
     throw std::invalid_argument("Matrix dimension mismatch.");
 
-  Matrix &C = *(new Matrix(A.m,B.n));
+  Matrix C(A.m,B.n);
 
   for(int irow=0; irow<A.m; irow++)
     for(int jcol=0; jcol<B.n; jcol++)
@@ -85,6 +85,25 @@ Matrix& Matrix::operator*(Matrix& B)
       C(irow,jcol) = 0;
       for(int k=0; k<A.n; k++)
         C(irow,jcol) += A(irow,k)*B(k,jcol);
+    }
+
+    return C;
+}
+
+ColVector Matrix::operator*(ColVector& B)
+{
+  Matrix A = *(this);
+
+  if(A.n!=B.m)
+    throw std::invalid_argument("Matrix dimension mismatch.");
+
+  ColVector C(A.m);
+
+  for(int irow=0; irow<A.m; irow++)
+    {
+      C(irow) = 0;
+      for(int k=0; k<A.n; k++)
+        C(irow) += A(irow,k)*B(k);
     }
 
     return C;
@@ -105,7 +124,7 @@ void Matrix::print()
 
 Matrix::~Matrix()
 {
-  cout << "Matrix dtor!!!\n";
+  //cout << "Matrix dtor!!!\n";
   delete[] values;
 }
 
