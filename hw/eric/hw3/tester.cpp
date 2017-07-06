@@ -6,21 +6,42 @@ int main()
 {
 
   Matrix m(3,3);
-  m(0,0) = 20;
-  cout << "Here is my matrix: " << m(0,0) << ", " << m(0,1) << endl;
+  m(0,0) = 1;
+  m(1,0) = 2;
+  m(2,0) = 3;
+  m(0,2) = 4;
+  m.print();
+  cout << endl;
 
   Matrix b = m;
   b(0,1) = 10;
-  cout << "Here is my matrix: " << b(0,0) << ", " << b(0,1) << endl;
+  b.print();
+  cout << endl;
 
-  Vector v(10);
-  v(1) = 10;
+  ColVector v(3);
+  v(0) = 1;
+  v(1) = 2;
+  v(2) = 3;
 
-  Vector u = v;
+  ColVector u = v;
   u(0) = 100;
 
-  cout << "Here is my vector: " << v(0) << ", " << v(1) << endl;
-  cout << "Here is my vector: " << u(0) << ", " << u(1) << endl;
+  cout << "trying to print v\n";
+  v.print();
+  cout << endl;
+
+  u.print();
+  cout << endl;
+
+  Matrix r("testMat");
+  r.print();
+  cout << endl;
+
+  ColVector cv("testVec");
+  cv.print();
+  cout << endl;
+
+  (m*v).print();
 
   return 0;
 }
