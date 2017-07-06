@@ -119,33 +119,40 @@ The following notes are based on {\em Probability and Computation} by Mitzenmach
 
 \section{Flipping coin example and other generalities}
 Given a coin $x_{i}$, where $0$ is tails and heads is $1$, the probability $\Prob$ that once flipped the coin will be heads can be denoted:
-\[\Prob[x_{i}=1] = \frac{1}{2},\;\;\;\; x_{i}=\begin{cases} 0 \\ 1 \end{cases} \]
-If you flip it $n$ times then:
+\[\Prob[x_{i}=1] = \frac{1}{2},\;\;\;\; x_{i}=\begin{cases} 0 \\ 1 \end{cases}\]
+The expected value $\E$ of such coin $x_{i}$, also called the average, is:
+\[\E[x_{i}] = \frac{1}{2}\]
+
+If you flip it $n$ times then we obtain a random variable $X$:
 \[ X = \sum_{i=1}^{n} x_{i}\]
 
-
-GOLDEN RULE aka linearity of expectation \\
-Given randon variables $x_{i}$ and not assuming any relationship among them, then: \\
+\subsection{Linearity of Expectation aka Golden Rule}
+Given random variables $x_{i}$ and not assuming any relationship among them, then: \\
 \[\forall x_{i}\:|\:X = x_{1} + x_{2} + \ldots + x_{n} \Longleftrightarrow \E[X] = \E[x_{1}] + \E[x_{2}] + \ldots + \E[x_{n}]\]
-%Sum example:\[\sum_{n=1}^{\infty} 2^{-n} = 1\]
+
+\[\E[X] = \sum_{i=1}^{n} x_{i}\E[x_{i}] = \frac{1}{2}\sum_{i=1}^{n} x_{i} = \frac{n}{2} \]
+% http://www.cse.iitd.ac.in/~mohanty/col106/Resources/linearity_expectation.pdf
 
 %The naive and obvious solution to All Pairs Shortest Path(APSP) problem is to run a Single Source Shortest Path algorithm from each starting vertex $v$.  If the graph has arbitrary edge weights, it takes the Bellman-Ford algorithm $O(|E||V|^2)$ time to solve APSP.  But there are better approaches.
 
-\subsection{Floyd-Warshall Algorithm: Dynamic Programming}
+\section{Markov's Inequality}
+%https://en.wikipedia.org/wiki/Markov%27s_inequality
 
 Label the vertices $1,2,\ldots,n$.
 Define $d^{(k)}(i,j)$ to be the length of a shortest path from $i$
 to $j$, using intermediate vertices from \{$1,2,\ldots,k$\} only.
 Obviously, $d^{(n)}(i,j)$ is the full problem.  
 
-\ldots
-
-\section{Transitive Closure}
+\section{Chebyshev's Inequality}
+%https://en.wikipedia.org/wiki/Chebyshev%27s_inequality
 
 Our goal is to achieve running time $O(M(n)\log n)$ for APSP where
 $M(n)$ is the time for $n\times n$ matrix multiplication.  Let's see
 if we can achieve this for a simpler but related problem, namely
 {\it Transitive Closure\/}:
+
+\section{Chernoff Bound}
+%https://en.wikipedia.org/wiki/Chernoff_bound
 
 \ldots
 
