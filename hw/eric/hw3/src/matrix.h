@@ -11,7 +11,11 @@ class Matrix
 {
 
   public:
+    unsigned m;
+    unsigned n;
+
     Matrix(unsigned rows, unsigned cols);
+    Matrix(unsigned rows, unsigned cols, int* vals);
     Matrix(string filename);
 
     int getRowCount() {return m;};
@@ -19,6 +23,7 @@ class Matrix
     int* getValueBuffer() const {return values;};
     void print(); // make this compatible with ostream stuff..
     void readFromFile(string filename, bool vector=false);
+    void setValueBuffer(int *newValues);
 
     int operator()(unsigned row, unsigned col) const {return values[col + n*row];};
     int& operator()(unsigned row, unsigned col) {return values[col + n*row];};
@@ -31,8 +36,6 @@ class Matrix
 
 
   private:
-    unsigned m;
-    unsigned n;
     int *values;
 };
 
@@ -41,6 +44,7 @@ class ColVector: public Matrix
 {
   public:
     ColVector(int n);
+    ColVector(int n, int* vals);
     ColVector(string filename);
     int getCount() {return getRowCount();};
     int operator()(unsigned row) const {return getValueBuffer()[row];};

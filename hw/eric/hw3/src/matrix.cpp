@@ -8,6 +8,15 @@ Matrix::Matrix(unsigned rows, unsigned cols)
   values = new int[rows*cols];
 }
 
+
+Matrix::Matrix(unsigned rows, unsigned cols, int* vals)
+{
+  m = rows;
+  n = cols;
+  values = vals;
+}
+
+
 Matrix::Matrix(const Matrix& mat)
 {
   n = mat.n;
@@ -22,6 +31,12 @@ Matrix::Matrix(const Matrix& mat)
 Matrix::Matrix(string filename)
 {
   readFromFile(filename);
+}
+
+void Matrix::setValueBuffer(int* newValues)
+{
+  delete[] values;
+  values = newValues;
 }
 
 void Matrix::readFromFile(string filename, bool vector)
@@ -90,11 +105,15 @@ void Matrix::print()
 
 Matrix::~Matrix()
 {
+  cout << "Matrix dtor!!!\n";
   delete[] values;
 }
 
 
 ColVector::ColVector(int n) : Matrix(n,1)
+{}
+
+ColVector::ColVector(int n, int* vals) : Matrix(n,1,vals)
 {}
 
 ColVector::ColVector(string filename) : Matrix(0,0)
