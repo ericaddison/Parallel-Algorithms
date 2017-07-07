@@ -47,21 +47,30 @@ void sendVector(int rank, int size, ColVector& x)
 
 
 
+int getNrowsForRank(int rank, int nProcs, int totalRows)
+{
+  int nRows = totalRows/nProcs;
+  nRows += (rank < (totalRows - nRows*nProcs));
+  return nRows;
+}
+
+
+
 void sendMatrixRows(int world_size, Matrix &A)
 {
-  int nRowsMax = A.m/world_size+1;
-  int rowCnt = nRowsMax;
+  int totalRows = A.m;
+  A.m = getNrowsForRank(0, world_size, totalRows);
+  int rowCnt = A.m;
 
   for(int iRank=1; iRank<world_size; iRank++)
   {
-    int newNrows = nRowsMax - (iRank >= nRowsMax*world_size - A.m);
+    int nRows = getNrowsForRank(iRank, world_size, totalRows);
     int* rows = A.getValueBuffer() + rowCnt*A.n;
     //cout << "sending " << newNrows << " rows => " << newNrows*A.getColumnCount() << " ints\n";
-    MPI_Send(&newNrows, 1, MPI_INT, iRank, 0, MPI_COMM_WORLD);
-    MPI_Send(rows, newNrows*A.n, MPI_INT, iRank, 0, MPI_COMM_WORLD);
-    rowCnt += newNrows;
+    MPI_Send(&nRows, 1, MPI_INT, iRank, 0, MPI_COMM_WORLD);
+    MPI_Send(rows, nRows*A.n, MPI_INT, iRank, 0, MPI_COMM_WORLD);
+    rowCnt += nRows;
   }
-  A.m = nRowsMax;
 }
 
 
@@ -89,13 +98,12 @@ ColVector gatherResults(int world_size, int finalSize, ColVector &result, Matrix
       b(cnt++) = result(i);
 
     // recieve worker results
-    int nRowsMax = A.n/world_size+1;
     for(int iRank=1; iRank<world_size; iRank++)
     {
-      int newNrows = nRowsMax - (iRank >= nRowsMax*world_size - finalSize);
+      int nRows = getNrowsForRank(iRank, world_size, finalSize);
       int* target = b.getValueBuffer() + cnt;
-      MPI_Recv(target, newNrows, MPI_INT, iRank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-      cnt += newNrows;
+      MPI_Recv(target, nRows, MPI_INT, iRank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      cnt += nRows;
     }
 
     return b;

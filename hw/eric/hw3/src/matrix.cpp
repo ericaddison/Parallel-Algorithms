@@ -24,7 +24,6 @@ Matrix::Matrix(const Matrix& mat)
   n = mat.n;
   m = mat.m;
   values = new int[m*n];
-  cout << "copying!\n";
   std::copy(mat.values, mat.values + m*n, values);
 }
 
