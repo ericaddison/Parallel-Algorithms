@@ -4,8 +4,10 @@
 
 using std::string;
 using std::ifstream;
+using std::ofstream;
 using std::ostream;
 using std::cout;
+using std::endl;
 
 class ColVector;
 
@@ -26,6 +28,7 @@ class Matrix
     void print(); // make this compatible with ostream stuff..
     void readFromFile(string filename, bool vector=false);
     void setValueBuffer(int *newValues);
+    void writeToFile(string filename);
 
     int operator()(unsigned row, unsigned col) const {return values[col + n*row];};
     int& operator()(unsigned row, unsigned col) {return values[col + n*row];};
