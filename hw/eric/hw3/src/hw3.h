@@ -10,11 +10,11 @@ using std::cout;
 using std::endl;
 
 // p1_funcs.cpp
-int readFiles(int, Matrix&, ColVector&, string, string);
+int readFiles(Matrix&, ColVector&, string, string);
 bool dimensionCheck(int, int);
 void sendVector(int, int, ColVector&);
-void sendMatrixRows(int, int, Matrix&);
+void sendMatrixRows(int, Matrix&);
 void receiveMatrixRows(int, Matrix&);
-ColVector gatherResults(int, int, int, ColVector&, Matrix&);
+ColVector gatherResults(int, int, ColVector&, Matrix&);
 
 #endif

@@ -1,3 +1,6 @@
+#ifndef _MATRIX
+#define _MATRIX
+
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -56,3 +59,6 @@ class ColVector: public Matrix
     int operator()(unsigned row) const {return getValueBuffer()[row];};
     int& operator()(unsigned row) {return getValueBuffer()[row];};
 };
+
+
+#endif

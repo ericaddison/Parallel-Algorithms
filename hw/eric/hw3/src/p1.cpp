@@ -26,7 +26,9 @@ int main(int argc, char** argv)
   // rank0 read files and broadcast vector size
   Matrix A(0,0);
   ColVector x(0);
-  int vecSize = readFiles(world_rank, A, x, matrixFile, vectorFile);
+  int vecSize = -1;
+  if(world_rank==0)
+    vecSize = readFiles(A, x, matrixFile, vectorFile);
   int finalSize = A.m;
   MPI_Bcast(&vecSize, 1, MPI_INT, 0, MPI_COMM_WORLD);
   A.n = vecSize;
@@ -41,7 +43,7 @@ int main(int argc, char** argv)
 
   // rank0 send out matrix rows
   if(world_rank==0)
-    sendMatrixRows(world_rank, world_size, A);
+    sendMatrixRows(world_size, A);
   else
     receiveMatrixRows(world_rank, A);
 
@@ -51,7 +53,7 @@ int main(int argc, char** argv)
   // send results back to rank0 and write to file
   if(world_rank==0)
   {
-    ColVector b = gatherResults(world_rank, world_size, finalSize, result, A);
+    ColVector b = gatherResults(world_size, finalSize, result, A);
     b.writeToFile("p1Result");
   }
   else

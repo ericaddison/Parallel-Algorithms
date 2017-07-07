@@ -9,6 +9,7 @@ Matrix::Matrix(unsigned rows, unsigned cols)
 }
 
 
+
 Matrix::Matrix(unsigned rows, unsigned cols, int* vals)
 {
   m = rows;
@@ -17,15 +18,17 @@ Matrix::Matrix(unsigned rows, unsigned cols, int* vals)
 }
 
 
+
 Matrix::Matrix(const Matrix& mat)
 {
   n = mat.n;
   m = mat.m;
   values = new int[m*n];
-  for(unsigned irow=0; irow<m; irow++)
-    for(unsigned jcol=0; jcol<n; jcol++)
-      values[jcol + n*irow] = mat(irow, jcol);
+  cout << "copying!\n";
+  std::copy(mat.values, mat.values + m*n, values);
 }
+
+
 
 // no error checking in here. Assumes file contains exactly what it says it does.
 Matrix::Matrix(string filename)
@@ -33,11 +36,15 @@ Matrix::Matrix(string filename)
   readFromFile(filename);
 }
 
+
+
 void Matrix::setValueBuffer(int* newValues)
 {
   delete[] values;
   values = newValues;
 }
+
+
 
 void Matrix::readFromFile(string filename, bool vector)
 {
@@ -70,6 +77,8 @@ void Matrix::readFromFile(string filename, bool vector)
 
 }
 
+
+
 Matrix Matrix::operator*(Matrix& B)
 {
   Matrix A = *(this);
@@ -89,6 +98,8 @@ Matrix Matrix::operator*(Matrix& B)
 
     return C;
 }
+
+
 
 ColVector Matrix::operator*(ColVector& B)
 {
@@ -110,6 +121,7 @@ ColVector Matrix::operator*(ColVector& B)
 }
 
 
+
 void Matrix::print()
 {
   for(int i=0; i<m; i++)
@@ -120,6 +132,7 @@ void Matrix::print()
     cout << "\b\b]\n";
   }
 }
+
 
 
 void Matrix::writeToFile(string filename)
@@ -141,17 +154,23 @@ void Matrix::writeToFile(string filename)
 }
 
 
+
 Matrix::~Matrix()
 {
   delete[] values;
 }
 
 
+
 ColVector::ColVector(int n) : Matrix(n,1)
 {}
 
+
+
 ColVector::ColVector(int n, int* vals) : Matrix(n,1,vals)
 {}
+
+
 
 ColVector::ColVector(string filename) : Matrix(0,0)
 {

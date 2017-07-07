@@ -1,10 +1,8 @@
 #include "hw3.h"
 
 
-int readFiles(int rank, Matrix &A, ColVector &x, string matrixFile, string vectorFile)
+int readFiles(Matrix &A, ColVector &x, string matrixFile, string vectorFile)
 {
-  if(rank==0)
-  {
     //cout << "Rank 0 reading files " << matrixFile << " and " << vectorFile << endl;
     A.readFromFile(matrixFile);
     x.readFromFile(vectorFile, true);
@@ -15,8 +13,6 @@ int readFiles(int rank, Matrix &A, ColVector &x, string matrixFile, string vecto
 
     if(A.getColumnCount()==x.getCount())
       return x.getCount();
-  }
-  return -1;
 }
 
 
@@ -51,11 +47,10 @@ void sendVector(int rank, int size, ColVector& x)
 
 
 
-void sendMatrixRows(int rank, int world_size, Matrix &A)
+void sendMatrixRows(int world_size, Matrix &A)
 {
   int nRowsMax = A.m/world_size+1;
-  int nRows = nRowsMax - (rank >= nRowsMax*world_size - A.m);
-  int rowCnt = nRows;
+  int rowCnt = nRowsMax;
 
   for(int iRank=1; iRank<world_size; iRank++)
   {
@@ -66,7 +61,7 @@ void sendMatrixRows(int rank, int world_size, Matrix &A)
     MPI_Send(rows, newNrows*A.n, MPI_INT, iRank, 0, MPI_COMM_WORLD);
     rowCnt += newNrows;
   }
-  A.m = nRows;
+  A.m = nRowsMax;
 }
 
 
@@ -84,7 +79,7 @@ void receiveMatrixRows(int rank, Matrix &A)
 
 
 
-ColVector gatherResults(int rank, int world_size, int finalSize, ColVector &result, Matrix &A)
+ColVector gatherResults(int world_size, int finalSize, ColVector &result, Matrix &A)
 {
     ColVector b(finalSize);
     int cnt = 0;
