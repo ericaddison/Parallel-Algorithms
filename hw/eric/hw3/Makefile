@@ -5,7 +5,7 @@ LIB_DIRS =
 
 ODIR = obj
 SDIR = src
-_SRC = matrix.cpp p1.cpp
+_SRC = matrix.cpp p1.cpp p1_funcs.cpp
 SRC = $(patsubst %,$(SDIR)/%,$(_SRC))
 _OBJ = $(_SRC:.cpp=.o)
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
