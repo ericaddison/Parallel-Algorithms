@@ -124,23 +124,20 @@ void Matrix::print()
 
 void Matrix::writeToFile(string filename)
 {
-
   ofstream outFile;
   outFile.open(filename.c_str());
   bool isVector = (m==1 || n==1);
   if(!isVector)  // if not a vector
-    outFile << m << " " << n << endl;
+    outFile << m << " " << n;
 
   for(int irow=0; irow<m; irow++)
   {
       outFile << ( isVector ? " " : "\n" );
     for(int jcol=0; jcol<n; jcol++)
       outFile << values[jcol + n*irow] << " ";
-    outFile << "\b";
   }
 
   outFile.close();
-
 }
 
 

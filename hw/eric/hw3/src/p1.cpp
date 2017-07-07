@@ -71,45 +71,40 @@ void sendMatrixRows(int rank, int world_size, Matrix &A)
       rowCnt += newNrows;
     }
   }
-  else
-  {
-    int* matrix = new int[nRows*A.n];
-    MPI_Recv(matrix, nRows*A.n, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    A.setValueBuffer(matrix);
-  }
-  //cout << "Rank " << rank << " will process " << nRows << " rows\n";
+}
 
+void receiveMatrixRows(int rank, int world_size, Matrix &A)
+{
+  int nRowsMax = A.n/world_size+1;
+  int nRows = nRowsMax - (rank >= nRowsMax*world_size - A.n);
+  A.m = nRows;
+
+  int* matrix = new int[nRows*A.n];
+  MPI_Recv(matrix, nRows*A.n, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+  A.setValueBuffer(matrix);
 }
 
 
 ColVector gatherResults(int rank, int world_size, int finalSize, ColVector &result, Matrix &A)
 {
-  if(rank==0)
-  {
-      ColVector b(finalSize);
-      int cnt = 0;
+    ColVector b(finalSize);
+    int cnt = 0;
 
-      // copy in local results
-      for(int i=0; i<result.getCount(); i++)
-        b(cnt++) = result(i);
+    // copy in local results
+    for(int i=0; i<result.getCount(); i++)
+      b(cnt++) = result(i);
 
-      // recieve worker results
-      int nRowsMax = A.n/world_size+1;
-      for(int iRank=1; iRank<world_size; iRank++)
-      {
-        int newNrows = nRowsMax - (iRank >= nRowsMax*world_size - A.n);
-        int* target = b.getValueBuffer() + cnt;
-        MPI_Recv(target, newNrows, MPI_INT, iRank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        cnt += newNrows;
-      }
+    // recieve worker results
+    int nRowsMax = A.n/world_size+1;
+    for(int iRank=1; iRank<world_size; iRank++)
+    {
+      int newNrows = nRowsMax - (iRank >= nRowsMax*world_size - A.n);
+      int* target = b.getValueBuffer() + cnt;
+      MPI_Recv(target, newNrows, MPI_INT, iRank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      cnt += newNrows;
+    }
 
-      return b;
-  }
-  else
-  {
-    MPI_Send(result.getValueBuffer(), result.getCount(), MPI_INT, 0, 0, MPI_COMM_WORLD);
-    return ColVector(0);
-  }
+    return b;
 }
 
 int main(int argc, char** argv)
@@ -152,17 +147,22 @@ int main(int argc, char** argv)
   sendVector(world_rank, vecSize, x);
 
   // rank0 send out matrix rows
-  sendMatrixRows(world_rank, world_size, A);
+  if(world_rank==0)
+    sendMatrixRows(world_rank, world_size, A);
+  else
+    receiveMatrixRows(world_rank, world_size, A);
 
   // process matrix rows
   ColVector result = A*x;
 
-  // send results back to rank0
-  ColVector b = gatherResults(world_rank, world_size, finalSize, result, A);
-
-  // output result to file
+  // send results back to rank0 and write to file
   if(world_rank==0)
+  {
+    ColVector b = gatherResults(world_rank, world_size, finalSize, result, A);
     b.writeToFile("p1Result");
+  }
+  else
+    MPI_Send(result.getValueBuffer(), result.getCount(), MPI_INT, 0, 0, MPI_COMM_WORLD);
 
   // cleanup
   MPI_Finalize();
