@@ -117,10 +117,10 @@ This section will involve the notion of estimating probability (bound calculatio
 The following notes are based on {\em Probability and Computation} by Mitzenmacher and Upfal, pages 44-49 \& 64. 
 %You can run {\tt pdflatex} on that file to generate {\em scribe.pdf}. The remaining document shows usage of some of the commands in Latex.
 
-\section{Flipping coin example and other generalities}
+\section{Flipping coin example and other preliminaries}
 Given a coin $x_{i}$, where $0$ is tails and heads is $1$, the probability $\Prob$ that once flipped the coin will be heads can be denoted:
 \[\Prob[x_{i}=1] = \frac{1}{2},\;\;\;\; x_{i}=\begin{cases} 0 \\ 1 \end{cases}\]
-The expected value $\E$ of such coin $x_{i}$, also called the average, is:
+This type of experiment, where only two outcomes are possible, each with the same probability, is called a {\tt Bernoulli (binomial) trial}.  The expected value $\E$ of this trial using coin $x_{i}$, also called the average, is:
 \[\E[x_{i}] = \frac{1}{2}\]
 
 If you flip it $n$ times then we obtain a random variable $X$:
@@ -141,18 +141,42 @@ Var(X) &= \E[\,(X-\E[X])^2\,] \\
 &= \E[X^2] + \E[X]^2 - 2\E[X]^2 \\
 &= \E[X^2] -\E[X]^2
 \end{align*}
+\\
+For two random variables $X$ and $Y$:
+\begin{align*} 
+Var(X+Y) &= \E[\,(X+Y-\E[X+Y])^2\,] \\
+&= \E[\,(X+Y-\E[X]-\E[Y])^2\,] \\
+&= \E[\,(X-\E[X])^2 + (Y-\E[Y])^2 + 2(X-\E[X])(Y-\E[Y])\,] \\
+&= Var(X)+Var(Y)+2\,cov(X,Y)
+\end{align*}
 
-A property of a joint probability distribution, {\tt covariance} is a measure of the joint variability of two random variables like $X$ and $Y$. Formally, it is defined as $cov(X,Y) = \E[(X-\E[X])(Y-\E[Y])].$ \\ \\
+A property of a joint probability distribution, {\tt covariance} is a measure of the joint variability of two random variables (like $X$ and $Y$ above). Formally, it is defined as $cov(X,Y) = \E[(X-\E[X])(Y-\E[Y])] = \E[XY] - \E[X]\E[Y] .$ \\ \\
 If $X$ and $Y$ are {\em independent} then $cov(X,Y) = 0$ and $\Prob[X=x,Y=y] = \Prob[X=x] \cdot \Prob[Y=y]$. Moreover:
 \begin{align*} 
 \E[X,Y] &= \sum_{x,y} xy\Prob[X=x,Y=y]\\
  &= \sum_{x,y} xy\Prob[X=x]\Prob[Y=y]\\
  &= \sum_{x,y} x\Prob[X=x]\cdot y\Prob[Y=y]\\
- &= \E[X]\cdot\E[Y] \\
+ &= \E[X]\cdot\E[Y] 
 \end{align*}
-\\
 
 %The naive and obvious solution to All Pairs Shortest Path(APSP) problem is to run a Single Source Shortest Path algorithm from each starting vertex $v$.  If the graph has arbitrary edge weights, it takes the Bellman-Ford algorithm $O(|E||V|^2)$ time to solve APSP.  But there are better approaches.
+Using the coin example above, let $p=\Prob[x=1]=\frac{1}{2}$ and $q=\Prob[x=0]=1-p=\frac{1}{2}$ then:	
+\[\E[X] = 1\cdot p + 0\cdot q = p =	\frac{1}{2}\]
+\[Var(X) = \E[X^2]- \E[X]^2 = p-p^2 = p(1-p) = p\cdot q	= \frac{1}{4}\]
+
+\subsection{More on Bernoulli trials}
+
+\[x_i = \begin{cases} 0,\:\Prob = p \\ 1,\:\Prob=q=1-p \end{cases} \]
+\[X = \sum_{i=1}^{n} x_i\]
+\[\E[X]=\E[\sum_{i}^{n}x_i]	=\sum_{i}^{n}\E[x_i] = \sum_{i}^{n}p = n\cdot p \]
+\[Var(X)=Var(\sum_{i}^{n}x_i)=\sum_{i}^{n}Var(x_i) = \sum_{i}^{n}p\cdot q = n\cdot p\cdot q \]
+
+A {\tt binomial distribution} gives the probability distribution of obtaining exactly $m$ successes out of $n$ Bernoulli trials. In other words, the probability that a random variable $X$ with binomial distribution $B(n,p)$ is equal to the value $m$, where $m = 0, 1,\ldots,n$ , is given by 
+% (where the result of each Bernoulli trial is true with probability p and false with probability q=1-p). 
+\begin{align*} 
+\Prob[X=m]&= {{n}\choose{m}} p^m \cdot q^{n-m} \\
+&= \frac{n!}{(n-m)!\:m!}\: p^m \cdot q^{n-m}
+\end{align*} 
 
 \section{Markov's Inequality}
 %https://en.wikipedia.org/wiki/Markov%27s_inequality
@@ -164,16 +188,33 @@ To prove it, let $I = \begin{cases} 0,\: x \geq a \\ 1,\:otherwise \end{cases}$,
 \[\E[I]\leq \E[\frac{x}{a}]\quad which\: is\: the\: same\: as\quad \frac{\E[x]}{a} \]
 
 %Label the vertices $1,2,\ldots,n$. Define $d^{(k)}(i,j)$ to be the length of a shortest path from $i$ to $j$, using intermediate vertices from \{$1,2,\ldots,k$\} only. Obviously, $d^{(n)}(i,j)$ is the full problem.  
+Using the coin example, the probability ?????? can be expressed $\Prob[x\geq \frac{3}{4}n]=\Prob[x\geq \frac{3}{2}\frac{n}{2}]\leq \frac{2}{3}$
 
 \section{Chebyshev's Inequality}
 %https://en.wikipedia.org/wiki/Chebyshev%27s_inequality
+This inequality has great utility because it can be applied to any probability distribution in which the mean and variance are defined.
 
-%Our goal is to achieve running time $O(M(n)\log n)$ for APSP where$M(n)$ is the time for $n\times n$ matrix multiplication.  Let's see if we can achieve this for a simpler but related problem, namely {\it Transitive Closure\/}:
+%This method guarantees that for binomial distributions, no more than a certain fraction of values can be more than a certain distance from the mean. Specifically, no more than $\frac{1}{k^2}$ of the distribution's values can be more than $k$ standard deviations away from the mean.
 
-\section{Chernoff Bound}
+\[\Prob[\:|x-\E[x]|\geq a\:] = \Prob[\:(x-\E[x])^2 \geq a^2\:)]	 \leq \frac{Var(x)}{a^2} \]
+
+Using the previous coin example, the bound for $\Prob[x\geq \frac{3}{4}n]$ can be calculated as follows:
+
+
+\[\Prob[\:|x-\E[x]| \geq (\frac{3}{4} n-\E[x])\:] = \Prob[\:|x-\E[x]| \geq \frac{n}{4}\:] \leq \frac{Var(x)}{(\frac{n}{4})^2} = \frac{\frac{n}{4}}{(\frac{n}{4})^2} = \frac{4}{n} \]
+
+\section{Chernoff Bounds}
 %https://en.wikipedia.org/wiki/Chernoff_bound
-
-\ldots
+This method gives exponentially decreasing bounds on tail distributions of sums of {\em independent} random variables. Formally, Let $x_1,\ldots,x_n$ be independent variables, where $\Prob[x_i=1]=p_i$ and:
+\[ X = \sum_{i=1}^{n} x_i, \quad \mu = \E[X] \]
+Then the bounds are defined as:
+\begin{align*} 
+&1.\quad\forall \delta > 0\;,\; \Prob[x\geq (1+\delta)\cdot\mu] \leq
+ \left(  \frac{e^\delta}{(1+\delta)^{1+\delta}} \right)^\mu \\
+&2.\quad\forall \delta \in (0,1]\;,\; \Prob[x\geq (1+\delta)\cdot\mu] \leq
+ e^\frac{-\mu\delta^2}{3} \\
+&3.\quad\forall R\geq 6\mu\;,\; \Prob[x\geq R] \leq 2^{-R}
+\end{align*} 
 
 %\section*{References}
 %\beginrefs
@@ -185,7 +226,6 @@ To prove it, let $I = \begin{cases} 0,\: x \geq a \\ 1,\:otherwise \end{cases}$,
 %Shortest Path Problem, {\it SIAM Journal on Computing\/}~{\bf 5} (1976), 
 %pp.~83-89.
 %\endrefs
-
 
 \end{document}
 
