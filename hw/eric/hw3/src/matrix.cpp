@@ -51,7 +51,7 @@ void Matrix::readFromFile(string filename, bool vector)
   // open file
   ifstream infile(filename.c_str());
 
-  // if vector, on pass through to get size
+  // if vector, one pass through to get size
   if(vector)
   {
     m = 0;

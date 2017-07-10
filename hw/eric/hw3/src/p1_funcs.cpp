@@ -66,7 +66,7 @@ void sendMatrixRows(int world_size, Matrix &A)
   {
     int nRows = getNrowsForRank(iRank, world_size, totalRows);
     int* rows = A.getValueBuffer() + rowCnt*A.n;
-    //cout << "sending " << newNrows << " rows => " << newNrows*A.getColumnCount() << " ints\n";
+    //cout << "sending " << nRows << " rows to rank " << iRank << "\n";
     MPI_Send(&nRows, 1, MPI_INT, iRank, 0, MPI_COMM_WORLD);
     MPI_Send(rows, nRows*A.n, MPI_INT, iRank, 0, MPI_COMM_WORLD);
     rowCnt += nRows;
