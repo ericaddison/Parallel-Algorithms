@@ -78,6 +78,15 @@ void Matrix::readFromFile(string filename, bool vector)
 
 
 
+void Matrix::fill(int value)
+{
+  for(int i=0; i<m; i++)
+    for(int j=0; j<n; j++)
+      values[j+i*n] = value;
+}
+
+
+
 Matrix Matrix::operator*(Matrix& B)
 {
   Matrix A = *(this);

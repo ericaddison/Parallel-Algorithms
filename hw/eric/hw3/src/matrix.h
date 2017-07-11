@@ -32,6 +32,7 @@ class Matrix
     void readFromFile(string filename, bool vector=false);
     void setValueBuffer(int *newValues);
     void writeToFile(string filename);
+    void fill(int value);
 
     int operator()(unsigned row, unsigned col) const {return values[col + n*row];};
     int& operator()(unsigned row, unsigned col) {return values[col + n*row];};
