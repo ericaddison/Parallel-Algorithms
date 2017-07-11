@@ -47,9 +47,10 @@ int main(int argc, char** argv)
 
   // loop over dimensions
   int subcube = 0;
-  MPI_Comm subCube_comm = fullCube_comm;
   int cube_rank;
   int cube_size;
+  MPI_Comm subCube_comm = fullCube_comm;
+
   if(world_rank<nprocs)
   {
     for(int i=nprocs/2; i>=1; i/=2)
@@ -63,7 +64,7 @@ int main(int argc, char** argv)
         cout << "subCube " << subcube << ": world_rank/world_size: " << world_rank << "/" << world_size << "\tcube_rank/cube_size: " << cube_rank << "/" << cube_size << "\n";
 
       // update subcube number
-      subcube = 2*subcube + ((world_rank&i)>0);   // identify which subcube belongs to, first only one, then two, then four, etc
+      subcube = 2*subcube + (cube_rank>=i);   // identify which subcube this process belongs to
       MPI_Barrier(subCube_comm);
     }
   }

@@ -102,7 +102,7 @@ int main(int argc, char** argv)
 
 
       // update subcube number
-      subcube = 2*subcube + ((world_rank&i)>0);   // identify which subcube belongs to, first only one, then two, then four, etc
+      subcube = 2*subcube + (cube_rank>=i);   // identify which subcube this process belongs to
       MPI_Barrier(subCube_comm);
 
       // repeat!
