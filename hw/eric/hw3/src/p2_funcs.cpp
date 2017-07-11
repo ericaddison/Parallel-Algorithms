@@ -1,6 +1,14 @@
 #include "hw3.h"
 
-
+int lastPow2(int n)
+{
+  int lp2=1;
+  while((n>>=1)>0)
+  {
+    lp2<<=1;
+  }
+  return lp2;
+}
 
 bool dimensionCheck(int rank, int size)
 {
@@ -55,21 +63,12 @@ void receiveVectorSegments(int rank, ColVector &x)
   x.setValueBuffer(vec);
 }
 
-oid swap(int *A, int i, int j)
+void swap(int *A, int i, int j)
 {
   int temp = A[i];
   A[i] = A[j];
   A[j] = temp;
 }
-
-void printArray(int *A, int n, const char* str = "")
-{
-  cout << str << ": ";
-  for(int i=0; i<n; i++)
-    cout << A[i] << ", ";
-  cout << "\n";
-}
-
 
 void quickSort(int *A, int n)
 {
