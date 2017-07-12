@@ -28,7 +28,8 @@ class Matrix
     int getRowCount() {return m;};
     int getColumnCount() {return n;};
     int* getValueBuffer() const {return values;};
-    void print(ostream& os=cout); // make this compatible with ostream stuff..
+    void print(ostream& os=cout);
+    void printLinear(ostream& os=cout);
     void readFromFile(string filename, bool vector=false);
     void setValueBuffer(int *newValues, int newM, int newN);
     void writeToFile(string filename);

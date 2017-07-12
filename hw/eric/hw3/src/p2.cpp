@@ -172,13 +172,18 @@ int main(int argc, char** argv)
   }
 
   MPI_Comm_free(&subCube_comm);
-  // pass a token for writing to file
-    // if !rank0
-      // MPI_recv wait for token
-    // write to file
-    // if !rank(N-1)
-      // send token to next rank
 
+  // write to file, one proc at a time
+  int token = (world_rank==0);
+  if(world_rank)
+    MPI_Recv(&token, 1, MPI_INT, world_rank-1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+  std::ios_base::openmode appFlag = (world_rank) ? (ofstream::app) : ofstream::trunc;
+  ofstream outFile("sortedArray.txt", ofstream::out | appFlag);
+  x.printLinear(outFile);
+  outFile.close();
+  if(world_rank<(nprocs-1))
+    MPI_Send(&token, 1, MPI_INT, world_rank+1, 0, MPI_COMM_WORLD);
 
 
   // cleanup

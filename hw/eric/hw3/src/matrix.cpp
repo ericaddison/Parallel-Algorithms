@@ -144,6 +144,13 @@ void Matrix::print(ostream& os)
 
 
 
+void Matrix::printLinear(ostream& os)
+{
+  for(int i=0; i<n*m; i++)
+    os << values[i] << " ";
+}
+
+
 void Matrix::writeToFile(string filename)
 {
   ofstream outFile;
