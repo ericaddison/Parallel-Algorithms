@@ -43,10 +43,13 @@ void sendVectorSegments(int world_size, ColVector &x)
   {
     int nVals = getNrowsForRank(iRank, world_size, totalRows);
     int* vals = x.getValueBuffer() + valCnt;
-    //cout << "sending " << nRows << " rows to rank " << iRank << "\n";
+    //cout << "sending " << nVals << " values to rank " << iRank << "\n";
     MPI_Send(&nVals, 1, MPI_INT, iRank, 0, MPI_COMM_WORLD);
-    MPI_Send(vals, nVals, MPI_INT, iRank, 0, MPI_COMM_WORLD);
-    valCnt += nVals;
+    if(nVals>0)
+    {
+      MPI_Send(vals, nVals, MPI_INT, iRank, 0, MPI_COMM_WORLD);
+      valCnt += nVals;
+    }
   }
 }
 
@@ -56,10 +59,13 @@ void receiveVectorSegments(int rank, ColVector &x)
 {
   int nVals;
   MPI_Recv(&nVals, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-  //cout << "Rank " << rank << " expecting " << A.m << " rows \n";
-  int* vec = new int[nVals];
-  MPI_Recv(vec, nVals, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-  x.setValueBuffer(vec, nVals);
+  //cout << "Rnk " << rank << " expecting " << nVals << " rows \n";
+  if(nVals>0)
+  {
+    int* vec = new int[nVals];
+    MPI_Recv(vec, nVals, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    x.setValueBuffer(vec, nVals);
+  }
 }
 
 void swap(int *A, int i, int j)
@@ -73,7 +79,7 @@ void quickSort(int *A, int n)
 {
 
   // base case
-  if(n==1)
+  if(n<2)
     return;
 
   // choose new pivot

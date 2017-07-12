@@ -48,10 +48,8 @@ int main(int argc, char** argv)
   if(world_rank==0)
   {
     x.readFromFile(vectorFile);
+    fout << "read vector of size " << x.m << endl;
   }
-  int finalSize = x.getCount();
-
-  fout << "rank " << world_rank << " has finalSize " << finalSize << endl;
 
 
   // rank0 send out vector segments
@@ -60,8 +58,11 @@ int main(int argc, char** argv)
   else
     receiveVectorSegments(world_rank, x);
 
+
   // each process sort locally
+  fout << "sorting local\n";
   quickSort(x.getValueBuffer(), x.getCount());
+  fout << "sorted local\n";
 
   // Parallel HyperQuickSort
 
