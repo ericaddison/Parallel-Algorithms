@@ -53,7 +53,7 @@ int main(int argc, char** argv)
 
   if(world_rank<nprocs)
   {
-    for(int i=nprocs/2; i>=1; i/=2)
+    for(int i=nprocs/2; i>=1; i/=2)   // i is the power of 2 value that determines the next subcube splitting
     {
       // define new subcube MPI_comm
       MPI_Comm_split(subCube_comm, subcube, world_rank, &subCube_comm);

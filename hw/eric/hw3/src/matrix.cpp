@@ -37,10 +37,12 @@ Matrix::Matrix(string filename)
 
 
 
-void Matrix::setValueBuffer(int* newValues)
+void Matrix::setValueBuffer(int* newValues, int newM, int newN)
 {
   delete[] values;
   values = newValues;
+  m = newM;
+  n = newN;
 }
 
 
@@ -129,15 +131,14 @@ ColVector Matrix::operator*(ColVector& B)
 }
 
 
-
-void Matrix::print()
+void Matrix::print(ostream& os)
 {
   for(int i=0; i<m; i++)
   {
-    cout << "[";
-    for(int j=0; j<n; j++)
-      cout << values[j+n*i] << ", ";
-    cout << "\b\b]\n";
+    os << "[";
+    for(int j=0; j<n-1; j++)
+      os << values[j+n*i] << ", ";
+    os << values[n-1+n*i] << "]\n";
   }
 }
 
@@ -182,5 +183,10 @@ ColVector::ColVector(int n, int* vals) : Matrix(n,1,vals)
 
 ColVector::ColVector(string filename) : Matrix(0,0)
 {
-  readFromFile(filename, true);
+  readFromFile(filename);
+}
+
+void ColVector::readFromFile(string filename)
+{
+  Matrix::readFromFile(filename,true);
 }

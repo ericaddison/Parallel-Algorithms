@@ -12,11 +12,16 @@ using std::cout;
 using std::endl;
 
 // p1_funcs.cpp
-int lastPow2(int n);
 bool dimensionCheck(int rank, int size);
 int getNrowsForRank(int rank, int nProcs, int totalRows);
+
+
+// p2_funcs
+int lastPow2(int n);
 void sendVectorSegments(int world_size, ColVector &x);
 void receiveVectorSegments(int rank, ColVector &x);
 void quickSort(int *A, int n);
+int partition(int *A, int n, int p);
+void merge(int *result, int *in1, int n1, int *in2, int n2);
 
 #endif

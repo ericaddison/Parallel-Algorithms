@@ -56,11 +56,10 @@ void receiveVectorSegments(int rank, ColVector &x)
 {
   int nVals;
   MPI_Recv(&nVals, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-  x.m = nVals;
   //cout << "Rank " << rank << " expecting " << A.m << " rows \n";
   int* vec = new int[nVals];
   MPI_Recv(vec, nVals, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-  x.setValueBuffer(vec);
+  x.setValueBuffer(vec, nVals);
 }
 
 void swap(int *A, int i, int j)
@@ -80,6 +79,17 @@ void quickSort(int *A, int n)
   // choose new pivot
   int p = A[0];
 
+  // partition array based on pivot value
+  int ind = partition(A, n, p);
+
+  // recursive call
+  quickSort(A,ind);
+  quickSort(A+ind,n-ind);
+
+}
+
+int partition(int *A, int n, int p)
+{
   // swap items compared to pivot
   int l = -1;
   int r = n;
@@ -88,18 +98,33 @@ void quickSort(int *A, int n)
     do
     {
       l++;
-    } while(A[l]<p);
+    } while(A[l]<p && l<n);
     do
     {
       r--;
-    } while(A[r]>p);
+    } while(A[r]>p && r>=0);
     if(r<l)
       break;
     swap(A,l,r);
   }
+    return l;
+}
 
-  // recursive call
-  quickSort(A,l);
-  quickSort(A+l,n-l);
-
+// merge the sorted arrays in1 and in2 into result
+void merge(int *result, int *in1, int n1, int *in2, int n2)
+{
+  int c = n1+n2-1;
+  int c1 = n1-1;
+  int c2 = n2-1;
+  while(c1>=0 && c2>=0)
+  {
+    if(in1[c1]>in2[c2])
+      result[c--] = in1[c1--];
+    else
+      result[c--] = in2[c2--];
+  }
+  while(c1>=0)
+    result[c--] = in1[c1--];
+  while(c2>=0)
+    result[c--] = in2[c2--];
 }

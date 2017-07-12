@@ -28,9 +28,9 @@ class Matrix
     int getRowCount() {return m;};
     int getColumnCount() {return n;};
     int* getValueBuffer() const {return values;};
-    void print(); // make this compatible with ostream stuff..
+    void print(ostream& os=cout); // make this compatible with ostream stuff..
     void readFromFile(string filename, bool vector=false);
-    void setValueBuffer(int *newValues);
+    void setValueBuffer(int *newValues, int newM, int newN);
     void writeToFile(string filename);
     void fill(int value);
 
@@ -57,6 +57,8 @@ class ColVector: public Matrix
     ColVector(int n, int* vals);
     ColVector(string filename);
     int getCount() {return getRowCount();};
+    void readFromFile(string filename);
+    void setValueBuffer(int *newValues, int newM) {Matrix::setValueBuffer(newValues,newM,1);};
     int operator()(unsigned row) const {return getValueBuffer()[row];};
     int& operator()(unsigned row) {return getValueBuffer()[row];};
 };
