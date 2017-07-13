@@ -134,3 +134,67 @@ void merge(int *result, int *in1, int n1, int *in2, int n2)
   while(c2>=0)
     result[c--] = in2[c2--];
 }
+
+
+void exchangeVectorSegments(MPI_Comm subCube_comm, int dimensionBit, int nLow, int nHi, ColVector &x)
+{
+  // each proc exchange low/hi arrays with partner in the ith direction
+  int cube_rank;
+  MPI_Comm_rank(subCube_comm, &cube_rank);
+
+  int partnerRank = cube_rank^dimensionBit;
+  int sendSize;
+  int recvSize;
+  int newSize;
+  int * newVals;
+
+  if(cube_rank<dimensionBit) // lower half of cube, send first receive second
+  {
+    // exchange size info
+    sendSize = nHi;   // number of elements in upper part of partitioned
+    MPI_Send(&sendSize, 1, MPI_INT, partnerRank, 0, subCube_comm);
+    MPI_Recv(&recvSize, 1, MPI_INT, partnerRank, 0, subCube_comm, MPI_STATUS_IGNORE);
+
+    // exchange data
+    newSize = recvSize+nLow;
+    newVals = new int[newSize];
+    MPI_Send(x.getValueBuffer()+nLow, sendSize, MPI_INT, partnerRank, 0, subCube_comm);
+    MPI_Recv(newVals, recvSize, MPI_INT, partnerRank, 0, subCube_comm, MPI_STATUS_IGNORE);
+    merge(newVals, newVals, recvSize, x.getValueBuffer(), nLow);
+  }
+  else
+  {
+    // exchange size info
+    sendSize = nLow;
+    MPI_Recv(&recvSize, 1, MPI_INT, partnerRank, 0, subCube_comm, MPI_STATUS_IGNORE);
+    MPI_Send(&sendSize, 1, MPI_INT, partnerRank, 0, subCube_comm);
+
+    // exchange data
+    newSize = recvSize+nHi;
+    newVals = new int[newSize];
+    MPI_Recv(newVals, recvSize, MPI_INT, partnerRank, 0, subCube_comm, MPI_STATUS_IGNORE);
+    MPI_Send(x.getValueBuffer(), sendSize, MPI_INT, partnerRank, 0, subCube_comm);
+    merge(newVals, newVals, recvSize, x.getValueBuffer()+nLow, nHi);
+  }
+
+  x.setValueBuffer(newVals, newSize);
+
+}
+
+
+void writeSortedArrayToFile(ColVector &x, int nprocs, const string filename)
+{
+  int world_rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+
+  int token = (world_rank==0);
+  if(world_rank)
+    MPI_Recv(&token, 1, MPI_INT, world_rank-1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+  std::ios_base::openmode appFlag = (world_rank) ? (ofstream::app) : ofstream::trunc;
+  ofstream outFile(filename.c_str(), ofstream::out | appFlag);
+  x.printLinear(outFile);
+  outFile.close();
+  if(world_rank<(nprocs-1))
+    MPI_Send(&token, 1, MPI_INT, world_rank+1, 0, MPI_COMM_WORLD);
+}

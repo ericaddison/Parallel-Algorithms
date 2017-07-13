@@ -23,5 +23,7 @@ void receiveVectorSegments(int rank, ColVector &x);
 void quickSort(int *A, int n);
 int partition(int *A, int n, int p);
 void merge(int *result, int *in1, int n1, int *in2, int n2);
-
+void parallelHyperQuickSort(MPI_Comm subCube_comm, int world_rank, int nprocs, ColVector x);
+void writeSortedArrayToFile(ColVector &x, int nprocs, const string filename);
+void exchangeVectorSegments(MPI_Comm subCube_comm, int bitmask, int nLow, int nHi, ColVector &x);
 #endif
