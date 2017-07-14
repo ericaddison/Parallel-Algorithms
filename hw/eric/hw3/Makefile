@@ -6,7 +6,7 @@ LIB_DIRS =
 ODIR = obj
 SDIR = src
 #_SRC = matrix.cpp p1.cpp p1_funcs.cpp
-_SRC = p2.cpp p2_funcs.cpp matrix.cpp
+_SRC = p2.cpp quickSort.cpp matrix.cpp ParallelHyperQuickSorter.cpp
 SRC = $(patsubst %,$(SDIR)/%,$(_SRC))
 _OBJ = $(_SRC:.cpp=.o)
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))

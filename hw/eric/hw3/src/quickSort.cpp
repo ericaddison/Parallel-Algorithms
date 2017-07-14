@@ -1,7 +1,4 @@
-#include <iostream>
-using std::cout;
-using std::endl;
-
+#include "hw3.h"
 
 void swap(int *A, int i, int j)
 {
@@ -10,25 +7,31 @@ void swap(int *A, int i, int j)
   A[j] = temp;
 }
 
-void printArray(int *A, int n, const char* str = "")
-{
-  cout << str << ": ";
-  for(int i=0; i<n; i++)
-    cout << A[i] << ", ";
-  cout << "\n";
-}
 
 
 void quickSort(int *A, int n)
 {
 
   // base case
-  if(n==1)
+  if(n<2)
     return;
 
   // choose new pivot
   int p = A[0];
 
+  // partition array based on pivot value
+  int ind = partition(A, n, p);
+
+  // recursive call
+  quickSort(A,ind);
+  quickSort(A+ind,n-ind);
+
+}
+
+
+
+int partition(int *A, int n, int p)
+{
   // swap items compared to pivot
   int l = -1;
   int r = n;
@@ -37,36 +40,14 @@ void quickSort(int *A, int n)
     do
     {
       l++;
-    } while(A[l]<p);
+    } while(A[l]<p && l<n);
     do
     {
       r--;
-    } while(A[r]>p);
+    } while(A[r]>p && r>=0);
     if(r<l)
       break;
     swap(A,l,r);
   }
-
-  // recursive call
-  quickSort(A,l);
-  quickSort(A+l,n-l);
-
-}
-
-
-
-int main()
-{
-
-  // test quickSort
-  int n = 7;
-  int A[] = {4, 1, 4, 5, 6, 2, 3};
-
-  printArray(A,n,"input");
-  quickSort(A,n);
-
-  printArray(A,n,"result");
-
-
-  return 0;
+    return l;
 }
