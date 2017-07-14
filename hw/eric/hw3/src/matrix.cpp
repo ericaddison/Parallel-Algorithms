@@ -161,7 +161,7 @@ void Matrix::writeToFile(string filename)
 
   for(int irow=0; irow<m; irow++)
   {
-      outFile << ( isVector ? " " : "\n" );
+      outFile << ( isVector ? "" : "\n" );
     for(int jcol=0; jcol<n; jcol++)
       outFile << values[jcol + n*irow] << " ";
   }

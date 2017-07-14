@@ -27,8 +27,8 @@ int main(int argc, char** argv)
     x.readFromFile(vectorFile);
 
   // create sorter object, sort, write to file
-  ParallelHyperQuickSorter phqs(MPI_COMM_WORLD, x);
-  phqs.sort();
+  ParallelHyperQuickSorter phqs(MPI_COMM_WORLD);
+  phqs.sort(&x);
 
   // write to file
   if(world_rank==0)

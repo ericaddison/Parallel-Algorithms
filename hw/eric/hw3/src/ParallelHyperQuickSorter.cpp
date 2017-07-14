@@ -12,14 +12,13 @@ int lastPow2(int n)
 
 
 
-ParallelHyperQuickSorter::ParallelHyperQuickSorter(MPI_Comm comm, ColVector &vec) : x(vec)
+ParallelHyperQuickSorter::ParallelHyperQuickSorter(MPI_Comm comm)
 {
   initComm = comm;
   MPI_Comm_rank(initComm, &world_rank);
   MPI_Comm_size(initComm, &world_size);
   nprocs = lastPow2(world_size);
   dim = log2(nprocs);
-  final_size = x.m;
 }
 
 
@@ -35,6 +34,8 @@ int ParallelHyperQuickSorter::getNrowsForRank(int rank, int totalRows)
 
 void ParallelHyperQuickSorter::sendVectorSegments()
 {
+  ColVector &x = *vec;
+
   x.m = getNrowsForRank(0, final_size);
   int valCnt = x.m;
 
@@ -55,6 +56,8 @@ void ParallelHyperQuickSorter::sendVectorSegments()
 
 void ParallelHyperQuickSorter::receiveVectorSegments()
 {
+  ColVector &x = *vec;
+
   int nVals;
   MPI_Recv(&nVals, 1, MPI_INT, 0, 0, initComm, MPI_STATUS_IGNORE);
 
@@ -69,6 +72,8 @@ void ParallelHyperQuickSorter::receiveVectorSegments()
 
 void ParallelHyperQuickSorter::exchangeVectorSegments(int dimensionBit, int nLow, int nHi)
 {
+  ColVector &x = *vec;
+
   // each proc exchange low/hi arrays with partner in the ith direction
   int partnerRank = cube_rank^dimensionBit;
   int sendSize;
@@ -111,15 +116,21 @@ void ParallelHyperQuickSorter::exchangeVectorSegments(int dimensionBit, int nLow
 
 
 
-void ParallelHyperQuickSorter::sort()
+void ParallelHyperQuickSorter::sort(ColVector *in)
 {
-  // Dismiss procs greater than the last power of 2
+
+  // create new MPI_Comm for remaining procs
   int inCube = world_rank<nprocs;
+  MPI_Comm_split(initComm, inCube, world_rank, &subCube_comm);
+
+  // Dismiss procs greater than the last power of 2
   if(!inCube)
     return;
 
-  // create new MPI_Comm for remaining procs
-  MPI_Comm_split(initComm, inCube, world_rank, &subCube_comm);
+  // store pointer to vector and make a reference
+  vec = in;
+  ColVector &x = *vec;
+  final_size = x.m;
 
   // rank0 send out vector segments
   if(world_rank==0)
@@ -192,10 +203,11 @@ void ParallelHyperQuickSorter::merge(int *result, int *in1, int n1, int *in2, in
 
 void ParallelHyperQuickSorter::gatherResults()
 {
-
   // procs outside of hypercube return
   if(world_rank>=nprocs)
     return;
+
+  ColVector &x = *vec;
 
   // pass token around to write in correct order
   if(world_rank>0)
@@ -217,16 +229,12 @@ void ParallelHyperQuickSorter::gatherResults()
     {
       int nVals;
       MPI_Recv(&nVals, 1, MPI_INT, iRank, 0, initComm, MPI_STATUS_IGNORE);
-      cout << "receving " << nVals << " from " << iRank << endl;
       if(nVals>0)
       {
         MPI_Recv(x.getValueBuffer()+valCnt, nVals, MPI_INT, iRank, 0, initComm, MPI_STATUS_IGNORE);
         valCnt += nVals;
       }
     }
-
-    cout << "doners!\n";
-    x.printLinear();
   }
 
 }

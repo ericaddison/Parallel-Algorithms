@@ -11,11 +11,11 @@ class ParallelHyperQuickSorter
 {
 
   public:
-    ParallelHyperQuickSorter(MPI_Comm comm, ColVector &vec);
-    void sort();
+    ParallelHyperQuickSorter(MPI_Comm comm);
+    void sort(ColVector *vec);
 
   private:
-    ColVector &x;
+    ColVector *vec;
     MPI_Comm initComm;
     MPI_Comm subCube_comm;
     int dim;
