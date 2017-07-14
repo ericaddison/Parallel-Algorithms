@@ -29,10 +29,13 @@ int main(int argc, char** argv)
   // create sorter object, sort, write to file
   ParallelHyperQuickSorter phqs(MPI_COMM_WORLD, x);
   phqs.sort();
-  phqs.writeSortedArrayToFile("sortedArray.txt");
 
+  // write to file
   if(world_rank==0)
+  {
+    x.writeToFile("sortedArray.txt");
     cout << "\nSorted array written to file ./sortedArray.txt\n\n";
+  }
 
 
   // cleanup

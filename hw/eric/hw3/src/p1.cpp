@@ -32,7 +32,6 @@ int main(int argc, char** argv)
   int finalSize = A.m;
   MPI_Bcast(&vecSize, 1, MPI_INT, 0, MPI_COMM_WORLD);
   A.n = vecSize;
-  //cout << "Rank " << world_rank << " received vecsize " << vecSize << endl;
 
   // dimension mismatch check
   if(!dimensionCheck(world_rank, vecSize))

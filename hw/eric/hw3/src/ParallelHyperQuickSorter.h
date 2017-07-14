@@ -12,7 +12,6 @@ class ParallelHyperQuickSorter
 
   public:
     ParallelHyperQuickSorter(MPI_Comm comm, ColVector &vec);
-    void writeSortedArrayToFile(const string filename);
     void sort();
 
   private:
@@ -24,12 +23,14 @@ class ParallelHyperQuickSorter
     int world_size;
     int world_rank;
     int cube_rank;
+    int final_size;
 
     int getNrowsForRank(int rank, int totalRows);
     void sendVectorSegments();
     void receiveVectorSegments();
     void merge(int *result, int *in1, int n1, int *in2, int n2);
     void exchangeVectorSegments(int dimensionBit, int nLow, int nHi);
+    void gatherResults();
 
 };
 
