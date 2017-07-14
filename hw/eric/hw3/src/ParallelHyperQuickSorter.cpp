@@ -6,9 +6,7 @@ int lastPow2(int n)
 {
   int lp2=1;
   while((n>>=1)>0)
-  {
     lp2<<=1;
-  }
   return lp2;
 }
 
@@ -138,9 +136,9 @@ void ParallelHyperQuickSorter::sort()
 
   // loop over dimensions of hypercube
   int subcube = 0;
-  cube_rank = world_rank;
   int cube_size = nprocs;
   int pivot;
+  cube_rank = world_rank;
   for(int i=nprocs/2; i>=1; i/=2)
   {
     // define new subcube MPI_comm
@@ -208,7 +206,14 @@ void ParallelHyperQuickSorter::writeSortedArrayToFile(const string filename)
   std::ios_base::openmode appFlag = (world_rank) ? (ofstream::app) : ofstream::trunc;
   ofstream outFile(filename.c_str(), ofstream::out | appFlag);
   x.printLinear(outFile);
-  outFile.close();
   if(world_rank<(nprocs-1))
+  {
+    outFile.close();
     MPI_Send(&token, 1, MPI_INT, world_rank+1, 0, initComm);
+  }
+  else
+  {
+    outFile << endl;
+    outFile.close();
+  }
 }

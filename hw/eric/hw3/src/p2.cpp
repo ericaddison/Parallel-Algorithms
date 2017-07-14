@@ -31,6 +31,10 @@ int main(int argc, char** argv)
   phqs.sort();
   phqs.writeSortedArrayToFile("sortedArray.txt");
 
+  if(world_rank==0)
+    cout << "\nSorted array written to file ./sortedArray.txt\n\n";
+
+
   // cleanup
   MPI_Finalize();
 

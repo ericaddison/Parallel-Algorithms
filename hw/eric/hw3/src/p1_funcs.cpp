@@ -5,7 +5,7 @@ int readFiles(Matrix &A, ColVector &x, string matrixFile, string vectorFile)
 {
     //cout << "Rank 0 reading files " << matrixFile << " and " << vectorFile << endl;
     A.readFromFile(matrixFile);
-    x.readFromFile(vectorFile, true);
+    x.readFromFile(vectorFile);
 
     cout << "True answer b = \n";
     (A*x).print();
@@ -40,8 +40,7 @@ void sendVector(int rank, int size, ColVector& x)
     // other procs create vector
     if(rank>0)
     {
-      x.m = size;
-      x.setValueBuffer(vector);
+      x.setValueBuffer(vector, size);
     }
 }
 
@@ -79,11 +78,10 @@ void receiveMatrixRows(int rank, Matrix &A)
 {
   int nRows;
   MPI_Recv(&nRows, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-  A.m = nRows;
   //cout << "Rank " << rank << " expecting " << A.m << " rows \n";
   int* matrix = new int[nRows*A.n];
   MPI_Recv(matrix, nRows*A.n, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-  A.setValueBuffer(matrix);
+  A.setValueBuffer(matrix, nRows, A.n);
 }
 
 

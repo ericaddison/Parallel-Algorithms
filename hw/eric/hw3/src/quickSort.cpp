@@ -1,4 +1,4 @@
-#include "hw3.h"
+#include "quickSort.h"
 
 void swap(int *A, int i, int j)
 {
