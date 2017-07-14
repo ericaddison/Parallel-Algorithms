@@ -15,9 +15,4 @@ using std::endl;
 bool dimensionCheck(int rank, int size);
 int getNrowsForRank(int rank, int nProcs, int totalRows);
 
-
-// quicksort.cpp
-void quickSort(int *A, int n);
-int partition(int *A, int n, int p);
-
 #endif

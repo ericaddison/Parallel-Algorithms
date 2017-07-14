@@ -3,7 +3,9 @@
 
 #include <mpi.h>
 #include <fstream>
+#include "quickSort.h"
 #include "hw3.h"
+
 
 class ParallelHyperQuickSorter
 {

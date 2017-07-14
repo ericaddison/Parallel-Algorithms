@@ -1,5 +1,7 @@
 #include "ParallelHyperQuickSorter.h"
 
+
+
 int lastPow2(int n)
 {
   int lp2=1;
@@ -9,6 +11,7 @@ int lastPow2(int n)
   }
   return lp2;
 }
+
 
 
 ParallelHyperQuickSorter::ParallelHyperQuickSorter(MPI_Comm comm, ColVector &vec) : x(vec)
@@ -194,8 +197,9 @@ void ParallelHyperQuickSorter::merge(int *result, int *in1, int n1, int *in2, in
 
 void ParallelHyperQuickSorter::writeSortedArrayToFile(const string filename)
 {
-  int world_rank;
-  MPI_Comm_rank(initComm, &world_rank);
+
+  if(world_rank>=nprocs)
+    return;
 
   int token = (world_rank==0);
   if(world_rank)
