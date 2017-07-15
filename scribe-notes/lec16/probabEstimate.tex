@@ -1,0 +1,234 @@
+%
+% This is the LaTeX template file for lecture notes for EE 382C/EE 361C.
+%
+% To familiarize yourself with this template, the body contains
+% some examples of its use.  Look them over.  Then you can
+% run LaTeX on this file.  After you have LaTeXed this file then
+% you can look over the result either by printing it out with
+% dvips or using xdvi.
+%
+% This template is based on the template for Prof. Sinclair's CS 270.
+
+\documentclass[twoside]{article}
+\usepackage{graphics}
+\setlength{\oddsidemargin}{0.25 in}
+\setlength{\evensidemargin}{-0.25 in}
+\setlength{\topmargin}{-0.6 in}
+\setlength{\textwidth}{6.5 in}
+\setlength{\textheight}{8.5 in}
+\setlength{\headsep}{0.75 in}
+\setlength{\parindent}{0 in}
+\setlength{\parskip}{0.1 in}
+
+%
+% The following commands set up the lecnum (lecture number)
+% counter and make various numbering schemes work relative
+% to the lecture number.
+%
+\newcounter{lecnum}
+\renewcommand{\thepage}{\thelecnum-\arabic{page}}
+\renewcommand{\thesection}{\thelecnum.\arabic{section}}
+\renewcommand{\theequation}{\thelecnum.\arabic{equation}}
+\renewcommand{\thefigure}{\thelecnum.\arabic{figure}}
+\renewcommand{\thetable}{\thelecnum.\arabic{table}}
+
+%
+% The following macro is used to generate the header.
+%
+\newcommand{\lecture}[4]{
+   \pagestyle{myheadings}
+   \thispagestyle{plain}
+   \newpage
+   \setcounter{lecnum}{#1}
+   \setcounter{page}{1}
+   \noindent
+   \begin{center}
+   \framebox{
+      \vbox{\vspace{2mm}
+    \hbox to 6.28in { {\bf EE 382V: Parallel Algorithms
+                        \hfill Summer 2017} }
+       \vspace{4mm}
+       \hbox to 6.28in { {\Large \hfill Lecture #1: #2  \hfill} }
+       \vspace{2mm}
+       \hbox to 6.28in { {\it Lecturer: #3 \hfill Scribe: #4} }
+      \vspace{2mm}}
+   }
+   \end{center}
+   \markboth{Lecture #1: #2}{Lecture #1: #2}
+   %{\bf Disclaimer}: {\it These notes have not been subjected to the
+   %usual scrutiny reserved for formal publications.  They may be distributed
+   %outside this class only with the permission of the Instructor.}
+   \vspace*{4mm}
+}
+
+%
+% Convention for citations is authors' initials followed by the year.
+% For example, to cite a paper by Leighton and Maggs you would type
+% \cite{LM89}, and to cite a paper by Strassen you would type \cite{S69}.
+% (To avoid bibliography problems, for now we redefine the \cite command.)
+% Also commands that create a suitable format for the reference list.
+\renewcommand{\cite}[1]{[#1]}
+\def\beginrefs{\begin{list}%
+        {[\arabic{equation}]}{\usecounter{equation}
+         \setlength{\leftmargin}{2.0truecm}\setlength{\labelsep}{0.4truecm}%
+         \setlength{\labelwidth}{1.6truecm}}}
+\def\endrefs{\end{list}}
+\def\bibentry#1{\item[\hbox{[#1]}]}
+
+%Use this command for a figure; it puts a figure in wherever you want it.
+%usage: \fig{NUMBER}{SPACE-IN-INCHES}{CAPTION}
+\newcommand{\fig}[3]{
+			\vspace{#2}
+			\begin{center}
+			Figure \thelecnum.#1:~#3
+			\end{center}
+	}
+% Use these for theorems, lemmas, proofs, etc.
+\newtheorem{theorem}{Theorem}[lecnum]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+\newenvironment{proof}{{\bf Proof:}}{\hfill\rule{2mm}{2mm}}
+
+% **** IF YOU WANT TO DEFINE ADDITIONAL MACROS FOR YOURSELF, PUT THEM HERE:
+%\newcommand*{\expct}{\mathsf{E}}
+%\newcommand*{\prob1}{\mathsf{P}}
+\usepackage{amsmath,amssymb}
+\DeclareMathOperator{\E}{\mathbb{E}}
+\DeclareMathOperator{\Prob}{\mathbb{P}}
+
+
+\begin{document}
+%FILL IN THE RIGHT INFO.
+%\lecture{**LECTURE-NUMBER**}{**DATE**}{**LECTURER**}{**SCRIBE**}
+\lecture{16}{July 1}{Vijay Garg}{John Martinez}
+%\footnotetext{These notes are partially based on those of Nigel Mansell.}
+
+% **** YOUR NOTES GO HERE:
+
+% Some general latex examples and examples making use of the
+% macros follow.  
+%**** IN GENERAL, BE BRIEF. LONG\, SCRIBE NOTES, NO MATTER HOW WELL WRITTEN,
+%**** ARE NEVER READ BY ANYBODY.
+\section{Introduction}
+This section will involve the notion of estimating probability (bound calculation) by using the following methods: {\tt Markov, Chebyshev} and {\tt Chernoff}.
+The following notes are based on {\em Probability and Computation} by Mitzenmacher and Upfal, pages 44-49 \& 64. 
+%You can run {\tt pdflatex} on that file to generate {\em scribe.pdf}. The remaining document shows usage of some of the commands in Latex.
+
+\section{Flipping coin example and other preliminaries}
+Given a coin $x_{i}$, where $0$ is tails and heads is $1$, the probability $\Prob$ that once flipped the coin will be heads can be denoted:
+\[\Prob[x_{i}=1] = \frac{1}{2},\;\;\;\; x_{i}=\begin{cases} 0 \\ 1 \end{cases}\]
+This type of experiment, where only two outcomes are possible, each with the same probability, is called a {\tt Bernoulli (binomial) trial}.  The expected value $\E$ of this trial using coin $x_{i}$, also called the average, is:
+\[\E[x_{i}] = \frac{1}{2}\]
+
+If you flip it $n$ times then we obtain a random variable $X$:
+\[ X = \sum_{i=1}^{n} x_{i}\]
+
+\subsection{Linearity of Expectation aka Golden Rule}
+The expected value of a sum of random variables is equal to the sum of the individual expectation. Hence, given random variables $x_{i}$ and not assuming any relationship among them, then: \\
+\[\forall x_{i}\:|\:X = x_{1} + x_{2} + \ldots + x_{n} \Longleftrightarrow \E[X] = \E[x_{1}] + \E[x_{2}] + \ldots + \E[x_{n}]\]
+Using the coin example, and since $\sum\E=\E\sum$, then:
+\[\E[X] = \sum_{i=1}^{n} \E[x_{i}] = \frac{1}{2}\sum_{i=1}^{n} 1 = \frac{n}{2} \]
+% http://www.cse.iitd.ac.in/~mohanty/col106/Resources/linearity_expectation.pdf
+\subsection{Variance \& Covariance}
+{\tt Variace} can be informally thought of as the measure of how far a set of random numbers are spread out from their mean. Formally, given that $X$ is a random variable, $\E[X]$ is a constant, $\E[\E[X]]=\E[X]$, and $\E[cX] = c\E[X]$, then :
+\begin{align*} 
+Var(X) &= \E[\,(X-\E[X])^2\,] \\
+&= \E[\,X^2 +(\E[X])^2 - 2X\E[X]\,] \\
+&= \E[X^2] + \E[X]^2 - 2\E[X]\E[X] \\
+&= \E[X^2] + \E[X]^2 - 2\E[X]^2 \\
+&= \E[X^2] -\E[X]^2
+\end{align*}
+\\
+For two random variables $X$ and $Y$:
+\begin{align*} 
+Var(X+Y) &= \E[\,(X+Y-\E[X+Y])^2\,] \\
+&= \E[\,(X+Y-\E[X]-\E[Y])^2\,] \\
+&= \E[\,(X-\E[X])^2 + (Y-\E[Y])^2 + 2(X-\E[X])(Y-\E[Y])\,] \\
+&= Var(X)+Var(Y)+2\,cov(X,Y)
+\end{align*}
+
+A property of a joint probability distribution, {\tt covariance} is a measure of the joint variability of two random variables (like $X$ and $Y$ above). Formally, it is defined as $cov(X,Y) = \E[(X-\E[X])(Y-\E[Y])] = \E[XY] - \E[X]\E[Y] .$ \\ \\
+If $X$ and $Y$ are {\em independent} then $cov(X,Y) = 0$ and $\Prob[X=x,Y=y] = \Prob[X=x] \cdot \Prob[Y=y]$. Moreover:
+\begin{align*} 
+\E[X,Y] &= \sum_{x,y} xy\Prob[X=x,Y=y]\\
+ &= \sum_{x,y} xy\Prob[X=x]\Prob[Y=y]\\
+ &= \sum_{x,y} x\Prob[X=x]\cdot y\Prob[Y=y]\\
+ &= \E[X]\cdot\E[Y] 
+\end{align*}
+
+%The naive and obvious solution to All Pairs Shortest Path(APSP) problem is to run a Single Source Shortest Path algorithm from each starting vertex $v$.  If the graph has arbitrary edge weights, it takes the Bellman-Ford algorithm $O(|E||V|^2)$ time to solve APSP.  But there are better approaches.
+Using the coin example above, let $p=\Prob[x=1]=\frac{1}{2}$ and $q=\Prob[x=0]=1-p=\frac{1}{2}$ then:	
+\[\E[X] = 1\cdot p + 0\cdot q = p =	\frac{1}{2}\]
+\[Var(X) = \E[X^2]- \E[X]^2 = p-p^2 = p(1-p) = p\cdot q	= \frac{1}{4}\]
+
+\subsection{More on Bernoulli trials}
+
+\[x_i = \begin{cases} 0,\:\Prob = p \\ 1,\:\Prob=q=1-p \end{cases} \]
+\[X = \sum_{i=1}^{n} x_i\]
+\[\E[X]=\E[\sum_{i}^{n}x_i]	=\sum_{i}^{n}\E[x_i] = \sum_{i}^{n}p = n\cdot p \]
+\[Var(X)=Var(\sum_{i}^{n}x_i)=\sum_{i}^{n}Var(x_i) = \sum_{i}^{n}p\cdot q = n\cdot p\cdot q \]
+
+A {\tt binomial distribution} gives the probability distribution of obtaining exactly $m$ successes out of $n$ Bernoulli trials. In other words, the probability that a random variable $X$ with binomial distribution $B(n,p)$ is equal to the value $m$, where $m = 0, 1,\ldots,n$ , is given by 
+% (where the result of each Bernoulli trial is true with probability p and false with probability q=1-p). 
+\begin{align*} 
+\Prob[X=m]&= {{n}\choose{m}} p^m \cdot q^{n-m} \\
+&= \frac{n!}{(n-m)!\:m!}\: p^m \cdot q^{n-m}
+\end{align*} 
+
+\section{Markov's Inequality}
+%https://en.wikipedia.org/wiki/Markov%27s_inequality
+This inequality relates probabilities to expectations by giving an upper bound for the probability that a non-negative function of a random variable is greater than or equal to some positive constant. Thus, given a random variable $x \geq 0:$
+\[\forall a>0\:|\:\Prob[x \geq a] \leq \frac{\E[x]}{a} \:\equiv\:
+  \Prob[x \geq k\E[x]]  \leq \frac{1}{k}\]
+To prove it, let $I = \begin{cases} 0,\: x \geq a \\ 1,\:otherwise \end{cases}$, hence $I \leq \frac{x}{a},\forall x \geq 0, \forall a > 0$. It follows:
+\[\E[I] = 1 \cdot \Prob[x \geq a] + 0  \cdot (1-\Prob[x \geq a]) = \Prob[x \geq a]\]
+\[\E[I]\leq \E[\frac{x}{a}]\quad which\: is\: the\: same\: as\quad \frac{\E[x]}{a} \]
+
+%Label the vertices $1,2,\ldots,n$. Define $d^{(k)}(i,j)$ to be the length of a shortest path from $i$ to $j$, using intermediate vertices from \{$1,2,\ldots,k$\} only. Obviously, $d^{(n)}(i,j)$ is the full problem.  
+Using the coin example, the probability ?????? can be expressed $\Prob[x\geq \frac{3}{4}n]=\Prob[x\geq \frac{3}{2}\frac{n}{2}]\leq \frac{2}{3}$
+
+\section{Chebyshev's Inequality}
+%https://en.wikipedia.org/wiki/Chebyshev%27s_inequality
+This inequality has great utility because it can be applied to any probability distribution in which the mean and variance are defined.
+
+%This method guarantees that for binomial distributions, no more than a certain fraction of values can be more than a certain distance from the mean. Specifically, no more than $\frac{1}{k^2}$ of the distribution's values can be more than $k$ standard deviations away from the mean.
+
+\[\Prob[\:|x-\E[x]|\geq a\:] = \Prob[\:(x-\E[x])^2 \geq a^2\:)]	 \leq \frac{Var(x)}{a^2} \]
+
+Using the previous coin example, the bound for $\Prob[x\geq \frac{3}{4}n]$ can be calculated as follows:
+
+
+\[\Prob[\:|x-\E[x]| \geq (\frac{3}{4} n-\E[x])\:] = \Prob[\:|x-\E[x]| \geq \frac{n}{4}\:] \leq \frac{Var(x)}{(\frac{n}{4})^2} = \frac{\frac{n}{4}}{(\frac{n}{4})^2} = \frac{4}{n} \]
+
+\section{Chernoff Bounds}
+%https://en.wikipedia.org/wiki/Chernoff_bound
+This method gives exponentially decreasing bounds on tail distributions of sums of {\em independent} random variables. Formally, Let $x_1,\ldots,x_n$ be independent variables, where $\Prob[x_i=1]=p_i$ and:
+\[ X = \sum_{i=1}^{n} x_i, \quad \mu = \E[X] \]
+Then the bounds are defined as:
+\begin{align*} 
+&1.\quad\forall \delta > 0\;,\; \Prob[x\geq (1+\delta)\cdot\mu] \leq
+ \left(  \frac{e^\delta}{(1+\delta)^{1+\delta}} \right)^\mu \\
+&2.\quad\forall \delta \in (0,1]\;,\; \Prob[x\geq (1+\delta)\cdot\mu] \leq
+ e^\frac{-\mu\delta^2}{3} \\
+&3.\quad\forall R\geq 6\mu\;,\; \Prob[x\geq R] \leq 2^{-R}
+\end{align*} 
+
+%\section*{References}
+%\beginrefs
+%\bibentry{AGM97}{\sc N.~Alon}, {\sc Z.~Galil} and {\sc O.~Margalit},
+%On the Exponent of the All Pairs Shortest Path Problem,
+%{\it Journal of Computer and System Sciences\/}~{\bf 54} (1997),
+%pp.~255--262.
+%\bibentry{F76}{\sc M. L. ~Fredman}, New Bounds on the Complexity of the 
+%Shortest Path Problem, {\it SIAM Journal on Computing\/}~{\bf 5} (1976), 
+%pp.~83-89.
+%\endrefs
+
+\end{document}
+
+
+
+
