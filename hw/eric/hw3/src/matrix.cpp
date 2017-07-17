@@ -1,6 +1,13 @@
 #include "matrix.h"
 
 
+/**
+ * Matrix
+ * Matrix constructor to specify number of rows and columns.
+ *
+ * @param rows number of rows in matrix
+ * @param cols number of columns in matrix
+ */
 Matrix::Matrix(unsigned rows, unsigned cols)
 {
   m = rows;
@@ -9,7 +16,15 @@ Matrix::Matrix(unsigned rows, unsigned cols)
 }
 
 
-
+/**
+ * Matrix
+ * Matrix constructor to specify number of rows and columns and data.
+ * It is assumed that the provided data pointer has been properly allocated.
+ *
+ * @param rows number of rows in matrix
+ * @param cols number of columns in matrix
+ * @param vals pointer to array of values
+ */
 Matrix::Matrix(unsigned rows, unsigned cols, int* vals)
 {
   m = rows;
@@ -18,7 +33,12 @@ Matrix::Matrix(unsigned rows, unsigned cols, int* vals)
 }
 
 
-
+/**
+ * Matrix
+ * Copy constructor.
+ *
+ * @param mat matrix to copy
+ */
 Matrix::Matrix(const Matrix& mat)
 {
   n = mat.n;
@@ -29,14 +49,28 @@ Matrix::Matrix(const Matrix& mat)
 
 
 
-// no error checking in here. Assumes file contains exactly what it says it does.
+/**
+ * Matrix
+ * Contructor for reading a matrix from a text file.
+ *
+ * @param filename path to text file
+ */
 Matrix::Matrix(string filename)
 {
   readFromFile(filename);
 }
 
 
-
+/**
+ * setValueBuffer
+ * Set a new buffer to hold data values.
+ * Old buffer is free'd.
+ * Assumed that new buffer has been properly allocated.
+ *
+ * @param newValues pointer to new data buffer
+ * @param newM new number of rows
+ *_@param newN new number of columns
+ */
 void Matrix::setValueBuffer(int* newValues, int newM, int newN)
 {
   delete[] values;
@@ -46,7 +80,13 @@ void Matrix::setValueBuffer(int* newValues, int newM, int newN)
 }
 
 
-
+/**
+ * readFromFile
+ * Read values from a text file into the matrix.
+ *
+ * @param filename path to text file
+ * @param vector whether the calling object is a vector. Default=false
+ */
 void Matrix::readFromFile(string filename, bool vector)
 {
 
@@ -79,7 +119,12 @@ void Matrix::readFromFile(string filename, bool vector)
 }
 
 
-
+/**
+ * fill
+ * Fill the matrix with a given value.
+ *
+ * @param value the value to fill the matix with
+ */
 void Matrix::fill(int value)
 {
   for(int i=0; i<m; i++)
@@ -88,7 +133,13 @@ void Matrix::fill(int value)
 }
 
 
-
+/**
+ * operator*
+ * Operator overload for matrix multiplication
+ *
+ * @param B right-multiplied matrix
+ * @return matrix product
+ */
 Matrix Matrix::operator*(Matrix& B)
 {
   Matrix A = *(this);
@@ -110,7 +161,13 @@ Matrix Matrix::operator*(Matrix& B)
 }
 
 
-
+/**
+ * operator*
+ * Operator overload for matrix-vector multiplication. Returns a ColVector
+ *
+ * @param B right-multiplied vector
+ * @return vector product
+ */
 ColVector Matrix::operator*(ColVector& B)
 {
   Matrix A = *(this);
@@ -131,6 +188,14 @@ ColVector Matrix::operator*(ColVector& B)
 }
 
 
+
+/**
+ * print
+ * Convenience function for printing matrix values. Values are printed
+ * in a 2D array.
+ *
+ * @param os ostream reference to print to
+ */
 void Matrix::print(ostream& os)
 {
   for(int i=0; i<m; i++)
@@ -143,7 +208,13 @@ void Matrix::print(ostream& os)
 }
 
 
-
+/**
+ * printLinear
+ * Convenience function for printing matrix values. Values are printed
+ * sequentially.
+ *
+ * @param os ostream reference to print to
+ */
 void Matrix::printLinear(ostream& os)
 {
   for(int i=0; i<n*m; i++)
@@ -151,6 +222,14 @@ void Matrix::printLinear(ostream& os)
 }
 
 
+
+/**
+ * writeToFile
+ * Write matrix values to a text file. Vectors are always written
+ * out as a space separated list.
+ *
+ * @param filename path to output file
+ */
 void Matrix::writeToFile(string filename)
 {
   ofstream outFile;
@@ -171,6 +250,11 @@ void Matrix::writeToFile(string filename)
 
 
 
+/**
+ * ~Matrix
+ * Matrix destructor. Frees value buffer.
+ *
+ */
 Matrix::~Matrix()
 {
   delete[] values;
@@ -178,15 +262,17 @@ Matrix::~Matrix()
 
 
 
+/**
+ * ColVector
+ * The following methods are simple overrides of Matrix methods for
+ * Convenience.
+ */
+
 ColVector::ColVector(int n) : Matrix(n,1)
 {}
 
-
-
 ColVector::ColVector(int n, int* vals) : Matrix(n,1,vals)
 {}
-
-
 
 ColVector::ColVector(string filename) : Matrix(0,0)
 {

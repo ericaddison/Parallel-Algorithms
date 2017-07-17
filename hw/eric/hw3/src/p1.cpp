@@ -28,13 +28,18 @@ int main(int argc, char** argv)
   ColVector x(0);
   int vecSize = -1;
   if(world_rank==0)
+  {
     vecSize = readFiles(A, x, matrixFile, vectorFile);
+    cout << "True answer b = \n";
+    (A*x).print();
+    cout << endl;
+  }
   int finalSize = A.m;
   MPI_Bcast(&vecSize, 1, MPI_INT, 0, MPI_COMM_WORLD);
   A.n = vecSize;
 
   // dimension mismatch check
-  if(!dimensionCheck(world_rank, vecSize))
+  if(!badVectorCheck(world_rank, vecSize))
     return 0;
 
   // send the vector

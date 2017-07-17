@@ -12,7 +12,7 @@ using std::cout;
 using std::endl;
 
 // p1_funcs.cpp
-bool dimensionCheck(int rank, int size);
+bool badVectorCheck(int rank, int size);
 int getNrowsForRank(int rank, int nProcs, int totalRows);
 int readFiles(Matrix &A, ColVector &x, string matrixFile, string vectorFile);
 void sendVector(int rank, int size, ColVector& x);

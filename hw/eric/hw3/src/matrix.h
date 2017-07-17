@@ -1,3 +1,8 @@
+/**
+ * matrix.h
+ * A simple and incomplete implementation of a Matrix class for C++.
+ */
+
 #ifndef _MATRIX
 #define _MATRIX
 

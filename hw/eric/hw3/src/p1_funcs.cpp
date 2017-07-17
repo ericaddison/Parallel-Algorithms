@@ -1,15 +1,20 @@
 #include "hw3.h"
 
-
+/**
+ * readFiles
+ * For homework 3, problem 1. Read a matrix and vector from the given filenames.
+ *
+ * @param A reference to Matrix object to populate
+ * @param x reference to ColVector object to populate
+ * @param matrixFile path to matrix text file
+ * @param vectorFile path to vector text file
+ * @return number of elements read for the matrix.
+ */
 int readFiles(Matrix &A, ColVector &x, string matrixFile, string vectorFile)
 {
     //cout << "Rank 0 reading files " << matrixFile << " and " << vectorFile << endl;
     A.readFromFile(matrixFile);
     x.readFromFile(vectorFile);
-
-    cout << "True answer b = \n";
-    (A*x).print();
-    cout << endl;
 
     if(A.getColumnCount()==x.getCount())
       return x.getCount();
@@ -17,7 +22,15 @@ int readFiles(Matrix &A, ColVector &x, string matrixFile, string vectorFile)
 
 
 
-bool dimensionCheck(int rank, int size)
+/**
+ * badVectorCheck
+ * Check if vector size has been set. If not, clean up MPI.
+ *
+ * @param rank MPI process rank
+ * @param size received vector size
+ * @return boolean whether check passed or not
+ */
+bool badVectorCheck(int rank, int size)
 {
   if(size==-1)
   {
@@ -31,6 +44,15 @@ bool dimensionCheck(int rank, int size)
 
 
 
+/**
+ * sendVector
+ * Rank 0 broadcasts vector to all other processes, which receive and
+ * store the given vector.
+ *
+ * @param rank MPI process rank
+ * @param size received vector size
+ * @param x ColVector object to populate with received vector
+ */
 void sendVector(int rank, int size, ColVector& x)
 {
     // rank0 broadcast vector values
@@ -46,6 +68,16 @@ void sendVector(int rank, int size, ColVector& x)
 
 
 
+/**
+ * getNrowsForRank
+ * Compute number of rows to be processed for an MPI rank given the total
+ * number of processes and the total number of rows to process.
+ *
+ * @param rank MPI process rank
+ * @param nProcs total number of MPI processes
+ * @param totalRows total number of rows to process
+ * @return number of rows that the given rank will process
+ */
 int getNrowsForRank(int rank, int nProcs, int totalRows)
 {
   int nRows = totalRows/nProcs;
@@ -55,6 +87,15 @@ int getNrowsForRank(int rank, int nProcs, int totalRows)
 
 
 
+/**
+ * sendMatrixRows
+ * Split up the given Matrix and send the rows out to all of the MPI
+ * processes with rank >=1. It is assumed that MPI rank 0 process will
+ * call this method.
+ *
+ * @param nProcs number of MPI procs to send to
+ * @param A matrix to split and send
+ */
 void sendMatrixRows(int world_size, Matrix &A)
 {
   int totalRows = A.m;
