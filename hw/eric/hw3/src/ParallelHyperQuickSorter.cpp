@@ -139,12 +139,11 @@ void ParallelHyperQuickSorter::sort(ColVector *in)
     receiveVectorSegments();
 
   // each process sort locally
-  quickSort(x.getValueBuffer(), x.getCount());
+  quickSort(x);
 
   // loop over dimensions of hypercube
   int subcube = 0;
   int cube_size = nprocs;
-  int pivot;
   cube_rank = world_rank;
   for(int i=nprocs/2; i>=1; i/=2)
   {
@@ -155,11 +154,8 @@ void ParallelHyperQuickSorter::sort(ColVector *in)
     MPI_Comm_size(subCube_comm, &cube_size);
     MPI_Comm_free(&oldComm);
 
-    // proc 0 pick pivot (median)
-    if(cube_rank==0)
-      pivot = x(x.m/2);
-
-    // broadcast pivot to other procs in subcube
+    // broadcast pivot from proc 0 to other procs in subcube
+    int pivot = x(x.m/2);
     MPI_Bcast(&pivot, 1, MPI_INT, 0, subCube_comm);
 
     // each proc split sorted array in two: larger and smaller than pivot

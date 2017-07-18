@@ -48,6 +48,19 @@ void quickSort(int *A, int n)
 
 
 /**
+ * quickSort
+ * Perform sequential in-place quickSort on the input ColVector.
+ *
+ * @param x reference to ColVector to sort
+ */
+void quickSort(ColVector &x)
+{
+  quickSort(x.getValueBuffer(), x.getCount());
+}
+
+
+
+/**
  * partition
  * Given an array A with length n and a pivot p, swap elements in A such
  * that A[i]<=p for all i in 0..(ind-1), and A[i]>=p for all i in ind..(n-1).
