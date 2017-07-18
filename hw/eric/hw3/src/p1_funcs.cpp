@@ -106,7 +106,6 @@ void sendMatrixRows(int world_size, Matrix &A)
   {
     int nRows = getNrowsForRank(iRank, world_size, totalRows);
     int* rows = A.getValueBuffer() + rowCnt*A.n;
-    //cout << "sending " << nRows << " rows to rank " << iRank << "\n";
     MPI_Send(&nRows, 1, MPI_INT, iRank, 0, MPI_COMM_WORLD);
     MPI_Send(rows, nRows*A.n, MPI_INT, iRank, 0, MPI_COMM_WORLD);
     rowCnt += nRows;
@@ -115,11 +114,18 @@ void sendMatrixRows(int world_size, Matrix &A)
 
 
 
+/**
+ * receiveMatrixRows
+ * Partner function for sendMatrixRows. Receives the appropriate
+ * number of rows from the sending process (nominally rank 0).
+ *
+ * @param rank the world_rank of the process
+ * @param A matrix to populate with received rows
+ */
 void receiveMatrixRows(int rank, Matrix &A)
 {
   int nRows;
   MPI_Recv(&nRows, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-  //cout << "Rank " << rank << " expecting " << A.m << " rows \n";
   int* matrix = new int[nRows*A.n];
   MPI_Recv(matrix, nRows*A.n, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
   A.setValueBuffer(matrix, nRows, A.n);
@@ -127,7 +133,16 @@ void receiveMatrixRows(int rank, Matrix &A)
 
 
 
-ColVector gatherResults(int world_size, int finalSize, ColVector &result, Matrix &A)
+/**
+ * gatherResults
+ * Method for master process (nominally rank 0) to receive results from
+ * worker processes.
+ *
+ * @param world_size size of MPI_COMM_WORLD
+ * @param finalsize the number of rows in the final vector
+ * @param result the result vector in which to place results
+ */
+ColVector gatherResults(int world_size, int finalSize, ColVector &result)
 {
     ColVector b(finalSize);
     int cnt = 0;

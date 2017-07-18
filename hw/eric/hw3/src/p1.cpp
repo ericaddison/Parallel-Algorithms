@@ -57,7 +57,7 @@ int main(int argc, char** argv)
   // send results back to rank0 and write to file
   if(world_rank==0)
   {
-    ColVector b = gatherResults(world_size, finalSize, result, A);
+    ColVector b = gatherResults(world_size, finalSize, result);
     b.writeToFile("p1Result");
   }
   else

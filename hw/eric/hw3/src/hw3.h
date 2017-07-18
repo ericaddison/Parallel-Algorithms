@@ -18,7 +18,7 @@ int readFiles(Matrix &A, ColVector &x, string matrixFile, string vectorFile);
 void sendVector(int rank, int size, ColVector& x);
 void sendMatrixRows(int world_size, Matrix &A);
 void receiveMatrixRows(int rank, Matrix &A);
-ColVector gatherResults(int world_size, int finalSize, ColVector &result, Matrix &A);
+ColVector gatherResults(int world_size, int finalSize, ColVector &result);
 
 
 #endif
