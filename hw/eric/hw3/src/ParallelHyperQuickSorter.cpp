@@ -70,50 +70,6 @@ void ParallelHyperQuickSorter::receiveVectorSegments()
 }
 
 
-void ParallelHyperQuickSorter::exchangeVectorSegments(int dimensionBit, int nLow, int nHi)
-{
-  ColVector &x = *vec;
-
-  // each proc exchange low/hi arrays with partner in the ith direction
-  int partnerRank = cube_rank^dimensionBit;
-  int sendSize;
-  int recvSize;
-  int newSize;
-  int * newVals;
-
-  if(cube_rank<dimensionBit) // lower half of cube, send first receive second
-  {
-    // exchange size info
-    sendSize = nHi;   // number of elements in upper part of partitioned
-    MPI_Send(&sendSize, 1, MPI_INT, partnerRank, 0, subCube_comm);
-    MPI_Recv(&recvSize, 1, MPI_INT, partnerRank, 0, subCube_comm, MPI_STATUS_IGNORE);
-
-    // exchange data
-    newSize = recvSize+nLow;
-    newVals = new int[newSize];
-    MPI_Send(x.getValueBuffer()+nLow, sendSize, MPI_INT, partnerRank, 0, subCube_comm);
-    MPI_Recv(newVals, recvSize, MPI_INT, partnerRank, 0, subCube_comm, MPI_STATUS_IGNORE);
-    merge(newVals, newVals, recvSize, x.getValueBuffer(), nLow);
-  }
-  else
-  {
-    // exchange size info
-    sendSize = nLow;
-    MPI_Recv(&recvSize, 1, MPI_INT, partnerRank, 0, subCube_comm, MPI_STATUS_IGNORE);
-    MPI_Send(&sendSize, 1, MPI_INT, partnerRank, 0, subCube_comm);
-
-    // exchange data
-    newSize = recvSize+nHi;
-    newVals = new int[newSize];
-    MPI_Recv(newVals, recvSize, MPI_INT, partnerRank, 0, subCube_comm, MPI_STATUS_IGNORE);
-    MPI_Send(x.getValueBuffer(), sendSize, MPI_INT, partnerRank, 0, subCube_comm);
-    merge(newVals, newVals, recvSize, x.getValueBuffer()+nLow, nHi);
-  }
-
-  x.setValueBuffer(newVals, newSize);
-
-}
-
 
 
 void ParallelHyperQuickSorter::sort(ColVector *in)
@@ -176,6 +132,52 @@ void ParallelHyperQuickSorter::sort(ColVector *in)
 
 
 
+void ParallelHyperQuickSorter::exchangeVectorSegments(int dimensionBit, int nLow, int nHi)
+{
+  ColVector &x = *vec;
+
+  // each proc exchange low/hi arrays with partner in the ith direction
+  int partnerRank = cube_rank^dimensionBit;
+  int sendSize;
+  int recvSize;
+  int newSize;
+  int * newVals;
+
+  if(cube_rank<dimensionBit) // lower half of cube, send first receive second
+  {
+    // exchange size info
+    sendSize = nHi;   // number of elements in upper part of partitioned
+    MPI_Send(&sendSize, 1, MPI_INT, partnerRank, 0, subCube_comm);
+    MPI_Recv(&recvSize, 1, MPI_INT, partnerRank, 0, subCube_comm, MPI_STATUS_IGNORE);
+
+    // exchange data
+    newSize = recvSize+nLow;
+    newVals = new int[newSize];
+    MPI_Send(x.getValueBuffer()+nLow, sendSize, MPI_INT, partnerRank, 0, subCube_comm);
+    MPI_Recv(newVals, recvSize, MPI_INT, partnerRank, 0, subCube_comm, MPI_STATUS_IGNORE);
+    merge(newVals, newVals, recvSize, x.getValueBuffer(), nLow);
+  }
+  else
+  {
+    // exchange size info
+    sendSize = nLow;
+    MPI_Recv(&recvSize, 1, MPI_INT, partnerRank, 0, subCube_comm, MPI_STATUS_IGNORE);
+    MPI_Send(&sendSize, 1, MPI_INT, partnerRank, 0, subCube_comm);
+
+    // exchange data
+    newSize = recvSize+nHi;
+    newVals = new int[newSize];
+    MPI_Recv(newVals, recvSize, MPI_INT, partnerRank, 0, subCube_comm, MPI_STATUS_IGNORE);
+    MPI_Send(x.getValueBuffer(), sendSize, MPI_INT, partnerRank, 0, subCube_comm);
+    merge(newVals, newVals, recvSize, x.getValueBuffer()+nLow, nHi);
+  }
+
+  x.setValueBuffer(newVals, newSize);
+
+}
+
+
+
 // merge the sorted arrays in1 and in2 into result
 void ParallelHyperQuickSorter::merge(int *result, int *in1, int n1, int *in2, int n2)
 {
@@ -183,12 +185,7 @@ void ParallelHyperQuickSorter::merge(int *result, int *in1, int n1, int *in2, in
   int c1 = n1-1;
   int c2 = n2-1;
   while(c1>=0 && c2>=0)
-  {
-    if(in1[c1]>in2[c2])
-      result[c--] = in1[c1--];
-    else
-      result[c--] = in2[c2--];
-  }
+    result[c--] = (in1[c1]>in2[c2]) ? in1[c1--] : in2[c2--];
   while(c1>=0)
     result[c--] = in1[c1--];
   while(c2>=0)
