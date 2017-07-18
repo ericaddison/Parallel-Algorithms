@@ -22,7 +22,11 @@ fi
 #tar xpf $UPC_FILE
 
 cd build
-../gupc/configure  --enable-multilib --prefix=/usr/local --enable-languages=c,c++
+../gupc/configure  	--disable-multilib \
+					--prefix=/usr/local \
+					--enable-languages=c,c++ \
+					--enable-threads=posix  \
+ 					--enable-shared
 
 
 make
