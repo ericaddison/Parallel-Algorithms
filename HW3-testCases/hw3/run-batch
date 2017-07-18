@@ -1,0 +1,12 @@
+#!/bin/bash
+#SBATCH -J myMPI                    # job name
+#SBATCH -o myMPI                    # output and error file name (%j expands to jobID)
+#SBATCH -n 20                        #  total number of mpi tasks requested
+#SBATCH -p normal                   # queue (partition) -- normal, development, etc.
+#SBATCH -t 00:00:20                 # run time (hh:mm:ss) - 20 seconds
+#SBATCH -A Parallel-Algorithms
+#SBATCH --mail-user=bricengnigha@utexas.edu #  replace by your email
+#SBATCH --mail-type=begin           # email me when the job starts
+#SBATCH --mail-type=end             # email me when the job finishes
+
+ibrun  ./a.out
