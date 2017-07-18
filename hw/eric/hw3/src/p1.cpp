@@ -1,5 +1,13 @@
 #include "hw3.h"
 
+
+/**
+ * main
+ * Main function for HW3, problem 1. Performs matrix-vector multiplication
+ * of a matrix and a vector read in from text files specified as command line
+ * arguments. Problem is implemented as one procedural main function with
+ * helper functions added for abstraction and readibility.
+ */
 int main(int argc, char** argv)
 {
 

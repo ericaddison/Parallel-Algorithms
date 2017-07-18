@@ -1,6 +1,13 @@
 #include "hw3.h"
 #include "ParallelHyperQuickSorter.h"
 
+
+/**
+ * main
+ * Main function for HW3, problem 2. Performs Parallel HyperQuickSort
+ * of a list of numbers read in from text file specified as a command line
+ * argument. Problem is implemented with a class to contain all sorting logic.
+ */
 int main(int argc, char** argv)
 {
 

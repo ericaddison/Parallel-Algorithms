@@ -1,5 +1,8 @@
 #include <iostream>
 #include "matrix.h"
+#include "quickSort.h"
+#include <sys/time.h>
+#include <stdlib.h>
 using namespace std;
 
 int main()
@@ -33,15 +36,27 @@ int main()
   u.print();
   cout << endl;
 
-  Matrix r("testMat");
-  r.print();
-  cout << endl;
 
-  ColVector cv("testVec");
-  cv.print();
-  cout << endl;
+  cout << "derp\n";
 
-  (m*v).print();
+  struct timeval t;
+  gettimeofday(&t, NULL);
+  srand(t.tv_usec);
 
+  int n = rand()%20+1;
+  int p = rand()%10;
+  cout << "n = " << n << endl;
+  cout << "pivot = " << p << endl;
+
+  int *A = new int[n];
+
+  for(int i=0; i<n; i++)
+    A[i] = rand()%10;
+
+
+  int ind = partition(A, n, p);
+  cout << "ind = " << ind << endl;
+
+  delete A;
   return 0;
 }
