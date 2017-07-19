@@ -34,13 +34,12 @@ int main(int argc, char** argv)
   // rank0 read files and broadcast vector size
   Matrix A(0,0);
   ColVector x(0);
+  ColVector trueResult(0);
   int vecSize = -1;
   if(world_rank==0)
   {
     vecSize = readFiles(A, x, matrixFile, vectorFile);
-    cout << "True answer b = \n";
-    (A*x).print();
-    cout << endl;
+    trueResult = A*x;
   }
   int finalSize = A.m;
   MPI_Bcast(&vecSize, 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -67,6 +66,11 @@ int main(int argc, char** argv)
   {
     ColVector b = gatherResults(world_size, finalSize, result);
     b.writeToFile("p1Result");
+    bool resultCorrect = b.equals(trueResult);
+    if(resultCorrect)
+      cout << "\nMPI result matches sequential result\n\n";
+    else
+      cout << "\nMPI result does NOT match sequential result\n\n";
   }
   else
     MPI_Send(result.getValueBuffer(), result.getCount(), MPI_INT, 0, 0, MPI_COMM_WORLD);

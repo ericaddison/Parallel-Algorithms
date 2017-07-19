@@ -39,6 +39,7 @@ class Matrix
     void setValueBuffer(int *newValues, int newM, int newN);
     void writeToFile(string filename);
     void fill(int value);
+    bool equals(Matrix& y);
 
     int operator()(unsigned row, unsigned col) const {return values[col + n*row];};
     int& operator()(unsigned row, unsigned col) {return values[col + n*row];};
@@ -48,7 +49,7 @@ class Matrix
     // holy trinity: dtor, copy ctor, assigment operator
     ~Matrix();
     Matrix(const Matrix& m);
-    Matrix operator=(const Matrix& m) {return Matrix(m);};
+    Matrix& operator=(const Matrix& mat);
 
 
   private:

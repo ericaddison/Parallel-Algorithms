@@ -48,6 +48,16 @@ Matrix::Matrix(const Matrix& mat)
 }
 
 
+Matrix& Matrix::operator=(const Matrix& mat)
+{
+  n = mat.n;
+  m = mat.m;
+  delete[] values;
+  values = new int[m*n];
+  std::copy(mat.values, mat.values + m*n, values);
+  return *this;
+}
+
 
 /**
  * Matrix
@@ -184,9 +194,29 @@ ColVector Matrix::operator*(ColVector& B)
         C(irow) += A(irow,k)*B(k);
     }
 
-    return C;
+  return C;
 }
 
+
+
+/**
+ * equals
+ * Check if this matrix is equal in dimension and values to another matrix
+ *
+ * @param y the other matrix
+ * @return boolean whether dimensions and values are equal
+ */
+bool Matrix::equals(Matrix& y)
+{
+  if(m!=y.m || n!=y.n)
+    return false;
+
+  for(int i=0; i<m*n; i++)
+    if(values[i]!=y.values[i])
+      return false;
+
+  return true;
+}
 
 
 /**
