@@ -56,6 +56,8 @@ class Matrix
     int *values;
 };
 
+
+
 // a COLUMN vector
 class ColVector: public Matrix
 {

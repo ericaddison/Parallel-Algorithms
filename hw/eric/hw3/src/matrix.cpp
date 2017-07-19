@@ -1,6 +1,7 @@
 #include "matrix.h"
 
 
+
 /**
  * Matrix
  * Matrix constructor to specify number of rows and columns.
@@ -14,6 +15,7 @@ Matrix::Matrix(unsigned rows, unsigned cols)
   n = cols;
   values = new int[rows*cols];
 }
+
 
 
 /**
@@ -33,6 +35,7 @@ Matrix::Matrix(unsigned rows, unsigned cols, int* vals)
 }
 
 
+
 /**
  * Matrix
  * Copy constructor.
@@ -48,6 +51,14 @@ Matrix::Matrix(const Matrix& mat)
 }
 
 
+
+/**
+ * operator=
+ * Assignment overload
+ *
+ * @param mat incoming matrix
+ * @return reference to this matrix
+ */
 Matrix& Matrix::operator=(const Matrix& mat)
 {
   n = mat.n;
@@ -57,6 +68,7 @@ Matrix& Matrix::operator=(const Matrix& mat)
   std::copy(mat.values, mat.values + m*n, values);
   return *this;
 }
+
 
 
 /**
@@ -69,6 +81,7 @@ Matrix::Matrix(string filename)
 {
   readFromFile(filename);
 }
+
 
 
 /**
@@ -88,6 +101,7 @@ void Matrix::setValueBuffer(int* newValues, int newM, int newN)
   m = newM;
   n = newN;
 }
+
 
 
 /**
@@ -129,6 +143,7 @@ void Matrix::readFromFile(string filename, bool vector)
 }
 
 
+
 /**
  * fill
  * Fill the matrix with a given value.
@@ -141,6 +156,7 @@ void Matrix::fill(int value)
     for(int j=0; j<n; j++)
       values[j+i*n] = value;
 }
+
 
 
 /**
@@ -169,6 +185,7 @@ Matrix Matrix::operator*(Matrix& B)
 
     return C;
 }
+
 
 
 /**
@@ -219,6 +236,7 @@ bool Matrix::equals(Matrix& y)
 }
 
 
+
 /**
  * print
  * Convenience function for printing matrix values. Values are printed
@@ -236,6 +254,7 @@ void Matrix::print(ostream& os)
     os << values[n-1+n*i] << "]\n";
   }
 }
+
 
 
 /**

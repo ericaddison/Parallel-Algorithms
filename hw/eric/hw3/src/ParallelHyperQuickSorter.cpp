@@ -2,6 +2,13 @@
 
 
 
+/**
+ * lastPow2
+ * Compute the largest power of 2 less than the given value.
+ *
+ * @param n value
+ * @return largest power of 2 less than n
+ */
 int lastPow2(int n)
 {
   int lp2=1;
@@ -12,6 +19,13 @@ int lastPow2(int n)
 
 
 
+/**
+ * ParallelHyperQuickSorter Ctor
+ * Construct a new ParallelHyperQuickSorter using the given MPI_Comm as
+ * the base comm object.
+ *
+ * @param comm initial MPI_Comm
+ */
 ParallelHyperQuickSorter::ParallelHyperQuickSorter(MPI_Comm comm)
 {
   initComm = comm;
@@ -23,6 +37,15 @@ ParallelHyperQuickSorter::ParallelHyperQuickSorter(MPI_Comm comm)
 
 
 
+/**
+ * getNrowsForRank
+ * Compute the correct number of rows (i.e. values) to be processed by a given
+ * MPI_rank.
+ *
+ * @param rank the rank of an MPI process
+ * @param totalRows the total number of rows that will be distributed
+ * @return the number of rows (values) that the given rank will process
+ */
 int ParallelHyperQuickSorter::getNrowsForRank(int rank, int totalRows)
 {
   int nRows = totalRows/nprocs;
@@ -32,46 +55,14 @@ int ParallelHyperQuickSorter::getNrowsForRank(int rank, int totalRows)
 
 
 
-void ParallelHyperQuickSorter::sendVectorSegments()
-{
-  ColVector &x = *vec;
-
-  x.m = getNrowsForRank(0, final_size);
-  int valCnt = x.m;
-
-  for(int iRank=1; iRank<nprocs; iRank++)
-  {
-    int nVals = getNrowsForRank(iRank, final_size);
-    int* vals = x.getValueBuffer() + valCnt;
-    MPI_Send(&nVals, 1, MPI_INT, iRank, 0, initComm);
-    if(nVals>0)
-    {
-      MPI_Send(vals, nVals, MPI_INT, iRank, 0, initComm);
-      valCnt += nVals;
-    }
-  }
-}
-
-
-
-void ParallelHyperQuickSorter::receiveVectorSegments()
-{
-  ColVector &x = *vec;
-
-  int nVals;
-  MPI_Recv(&nVals, 1, MPI_INT, 0, 0, initComm, MPI_STATUS_IGNORE);
-
-  if(nVals>0)
-  {
-    int* vec = new int[nVals];
-    MPI_Recv(vec, nVals, MPI_INT, 0, 0, initComm, MPI_STATUS_IGNORE);
-    x.setValueBuffer(vec, nVals);
-  }
-}
-
-
-
-
+/**
+ * sort
+ * Sort the provided ColVector (in-place) with the ParallelHyperQuickSort
+ * algorithm. A hypercube topology is used based on the MPI processes associated
+ * with the MPI_Comm provided to the constructor.
+ *
+ * @param in pointer to the ColVector to be sorted.
+ */
 void ParallelHyperQuickSorter::sort(ColVector *in)
 {
 
@@ -131,6 +122,67 @@ void ParallelHyperQuickSorter::sort(ColVector *in)
 }
 
 
+
+/**
+ * sendVectorSegments
+ * Split up the ColVector stored in the object field "x" and send the segments
+ * out to the other MPI processes. Meant to be called by rank 0.
+ */
+void ParallelHyperQuickSorter::sendVectorSegments()
+{
+  ColVector &x = *vec;
+
+  x.m = getNrowsForRank(0, final_size);
+  int valCnt = x.m;
+
+  for(int iRank=1; iRank<nprocs; iRank++)
+  {
+    int nVals = getNrowsForRank(iRank, final_size);
+    int* vals = x.getValueBuffer() + valCnt;
+    MPI_Send(&nVals, 1, MPI_INT, iRank, 0, initComm);
+    if(nVals>0)
+    {
+      MPI_Send(vals, nVals, MPI_INT, iRank, 0, initComm);
+      valCnt += nVals;
+    }
+  }
+}
+
+
+
+/**
+ * receiveVectorSegments
+ * Partner to sendVectorSegments(). To be called by procs with rank>0. Receive
+ * segments of the input vector from rank 0.
+ */
+void ParallelHyperQuickSorter::receiveVectorSegments()
+{
+  ColVector &x = *vec;
+
+  int nVals;
+  MPI_Recv(&nVals, 1, MPI_INT, 0, 0, initComm, MPI_STATUS_IGNORE);
+
+  if(nVals>0)
+  {
+    int* vec = new int[nVals];
+    MPI_Recv(vec, nVals, MPI_INT, 0, 0, initComm, MPI_STATUS_IGNORE);
+    x.setValueBuffer(vec, nVals);
+  }
+}
+
+
+
+/**
+ * exchangeVectorSegments
+ * Sort the provided ColVector (in-place) with the ParallelHyperQuickSort
+ * algorithm. A hypercube topology is used based on the MPI processes associated
+ * with the MPI_Comm provided to the constructor.
+ *
+ * @param dimensionBit power-of-2 int representing the dimension of the
+ *        hypercube to exchange across
+ * @param nLow the number of elements in the "low" side of the proc's array
+ * @param nHi the number of elements in the "high" side of the proc's array
+ */
 void ParallelHyperQuickSorter::exchangeVectorSegments(int dimensionBit, int nLow, int nHi)
 {
   ColVector &x = *vec;
@@ -177,7 +229,16 @@ void ParallelHyperQuickSorter::exchangeVectorSegments(int dimensionBit, int nLow
 
 
 
-// merge the sorted arrays in1 and in2 into result
+/**
+ * merge
+ * Merge two sorted arrays together into one result array.
+ *
+ * @param result array to store merged result
+ * @param in1 first input array
+ * @param n1 number of elements in first input array
+ * @param in2 second input array
+ * @param n2 number of elements in second input array
+ */
 void ParallelHyperQuickSorter::merge(int *result, int *in1, int n1, int *in2, int n2)
 {
   int c = n1+n2-1;
@@ -193,6 +254,10 @@ void ParallelHyperQuickSorter::merge(int *result, int *in1, int n1, int *in2, in
 
 
 
+/**
+ * gatherResults
+ * Gather results from all processes back to rank 0.
+ */
 void ParallelHyperQuickSorter::gatherResults()
 {
   // procs outside of hypercube return

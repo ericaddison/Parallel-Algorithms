@@ -2,6 +2,7 @@
 #include "ParallelHyperQuickSorter.h"
 
 
+
 /**
  * main
  * Main function for HW3, problem 2. Performs Parallel HyperQuickSort
@@ -54,7 +55,6 @@ int main(int argc, char** argv)
     else
       cout << "\nMPI result does NOT match sequential result\n\n";
   }
-
 
   // cleanup
   MPI_Finalize();
