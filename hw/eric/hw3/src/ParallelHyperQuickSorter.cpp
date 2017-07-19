@@ -131,7 +131,6 @@ void ParallelHyperQuickSorter::sort(ColVector *in)
 }
 
 
-
 void ParallelHyperQuickSorter::exchangeVectorSegments(int dimensionBit, int nLow, int nHi)
 {
   ColVector &x = *vec;
@@ -213,9 +212,9 @@ void ParallelHyperQuickSorter::gatherResults()
   {
     int valCnt = x.m;
     int *temp = new int[x.m];
-    std::copy(x.getValueBuffer(), x.getValueBuffer()+x.m, temp);
+    std::copy(x.getValueBuffer(), x.getValueBuffer()+valCnt, temp);
     x.setValueBuffer(new int[final_size], final_size);
-    std::copy(temp, temp+x.m, x.getValueBuffer());
+    std::copy(temp, temp+valCnt, x.getValueBuffer());
     delete[] temp;
 
     for(int iRank=1; iRank<nprocs; iRank++)

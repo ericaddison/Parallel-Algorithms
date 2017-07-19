@@ -30,8 +30,13 @@ int main(int argc, char** argv)
 
   // rank0 read files and broadcast vector size
   ColVector x(0);
+  ColVector trueResult(0);
   if(world_rank==0)
+  {
     x.readFromFile(vectorFile);
+    trueResult = x;
+    quickSort(trueResult);
+  }
 
   // create sorter object, sort, write to file
   ParallelHyperQuickSorter phqs(MPI_COMM_WORLD);
@@ -41,7 +46,13 @@ int main(int argc, char** argv)
   if(world_rank==0)
   {
     x.writeToFile("sortedArray.txt");
-    cout << "\nSorted array written to file ./sortedArray.txt\n\n";
+    cout << "\nSorted array written to file ./sortedArray.txt\n";
+
+    bool resultCorrect = x.equals(trueResult);
+    if(resultCorrect)
+      cout << "\nMPI result matches sequential result\n\n";
+    else
+      cout << "\nMPI result does NOT match sequential result\n\n";
   }
 
 
