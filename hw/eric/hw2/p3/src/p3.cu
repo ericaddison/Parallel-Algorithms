@@ -13,10 +13,10 @@ extern "C"
 /**
  * radix_sort_cuda
  * Host-side function to set up and launch CUDA radix_sort kernel.
- * This function first calls the radix_sort_cuda for as many 
+ * This function first calls the radix_sort_cuda for as many
  * blocks as necessary, and then merges the resulting sorted arrays
- * repeatedly until all have been merged. 
- * 
+ * repeatedly until all have been merged.
+ *
  * Input array is padded to the next power of 2 if required.
  *
  * Sort is performed in-place.
@@ -61,8 +61,8 @@ void radix_sort_cuda(int *A, int n, int nDigits)
 
 // copy result and free memory
     cudaMemcpy(A, d_A+(np2-n), n*sizeof(int), cudaMemcpyDeviceToHost);
-    cudaFree(d_A);    
-    cudaFree(d_B);    
+    cudaFree(d_A);
+    cudaFree(d_B);
     free(h_A);
 }
 
@@ -82,7 +82,7 @@ void radix_sort_seq(int *A, int n, int nDigits)
     int *B = (int*)malloc(n*sizeof(int));
     if(nDigits%2)
         nDigits++;
-    
+
     for(int iDigit=0; iDigit<nDigits; iDigit++)
     {
         int radix = 1<<iDigit;
@@ -109,8 +109,8 @@ void radix_sort_seq(int *A, int n, int nDigits)
 /**
  * main
  * Main function for problem 3. Expects paths to input
- * files as command line arguments. Loops through 
- * paths and calls radix_sort for CUDA and sequential 
+ * files as command line arguments. Loops through
+ * paths and calls radix_sort for CUDA and sequential
  * algorithms and compares.
  * Results are printed to STDOUT.
  *
@@ -131,7 +131,7 @@ int main(int argc, char** argv)
         printf("***********************************\n\n");
 
     //  read array file
-           randArray ra = readIntsFromFile(nextFile);
+        randArray ra = readIntsFromFile(nextFile);
         int* A = ra.A;
         int n = ra.n;
 
@@ -139,7 +139,7 @@ int main(int argc, char** argv)
         radix_sort_cuda(A, n, 10);
 
     // seq sort for comparison
-           randArray rb = readIntsFromFile(nextFile);
+        randArray rb = readIntsFromFile(nextFile);
         int* B = rb.A;
         radix_sort_seq(B,n,10);
 
@@ -163,7 +163,7 @@ int main(int argc, char** argv)
             {
                 printf("SORT disagreement at index %d\n",i);
                 errCnt++;
-            }    
+            }
         }
         printf("CUDA result matches sequential result\n\n");
         printf("n = %d\n",n);
@@ -173,4 +173,3 @@ int main(int argc, char** argv)
     }
     return 0;
 }
-
