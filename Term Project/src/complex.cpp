@@ -1,21 +1,28 @@
 #include "complex.h"
 
 template <class T>
-T Complex<T>::mag2()
+Complex<T>::Complex(T re, T im)
 {
-  return real*real+imag+imag;
+  real = re;
+  imag = im;
+}
+
+template <class T>
+T Complex<T>::mag2() const
+{
+  return real*real+imag*imag;
 }
 
 template <class T>
 Complex<T> Complex<T>::operator+(const T & c)
 {
-  return Complex(real + c, imag);
+  return Complex<T>(real + c, imag);
 }
 
 
 
 template <class T>
-Complex<T> Complex<T>::operator+(const Complex & other)
+Complex<T> Complex<T>::operator+(const Complex<T> & other)
 {
   Complex<T> newC(real + other.real, imag + other.imag);
   return newC;
@@ -109,7 +116,7 @@ Complex<T> Complex<T>::operator/(const T & c)
 template <class T>
 Complex<T> Complex<T>::operator/(const Complex & other)
 {
-    Complex<T> newC = this*(!other);
+    Complex<T> newC = (*this)*(!other);
     newC /= other.mag2();
     return newC;
 }
@@ -147,7 +154,15 @@ bool Complex<T>::operator==(const Complex & other)
 }
 
 template <class T>
-Complex<T> Complex<T>::operator!()
+Complex<T> Complex<T>::operator!() const
 {
   return Complex<T>(real, -imag);
 }
+
+
+// force compilation of float and double methods
+// other templated versions will cause undefined reference linker errors
+// since implementation is separate from declaration (h file)
+// That's ok though, since we really only want float and double versions anyhow...
+template class Complex<float>;
+template class Complex<double>;

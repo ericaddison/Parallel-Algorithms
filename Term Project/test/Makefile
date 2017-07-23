@@ -17,7 +17,7 @@ _MAIN_OBJ = complex.o
 MAIN_OBJ = $(patsubst %,$(MAIN_ODIR)/%,$(_MAIN_OBJ))
 
 all: $(OBJ)
-	$(CC) $(CC_FLAGS) $^ $(MAIN_OBJ) $(LIB_DIRS) $(LIBS) $(GTEST_LIBS) -o bin/test.out
+	$(CC) $(CC_FLAGS) $(MAIN_OBJ) $^ $(LIB_DIRS) $(LIBS) $(GTEST_LIBS) -o bin/test.out
 
 $(ODIR)/%.o: $(SDIR)/%.cpp
 	$(CC) $(CC_FLAGS) $(INCLUDE_DIRS) $(SDIR)/$*.cpp -c -o $@
@@ -25,7 +25,3 @@ $(ODIR)/%.o: $(SDIR)/%.cpp
 clean:
 	rm -f obj/*
 	rm -f bin/*
-
-#g++ -std=c++11  -lm -lgtest -lpthread obj/gtest_main.o obj/complexTest.o ../obj/complex.o -o bin/test.out
-
-#g++ obj/gtest_main.o obj/complexTest.o ../obj/complex.o -lgtest -lpthread -std=c++11

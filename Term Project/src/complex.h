@@ -6,10 +6,9 @@ class Complex
     T real;
     T imag;
 
-    Complex<T>(T re=0, T im=0)
-    {real=re; imag=im;};
+    Complex<T>(T re=0, T im=0);
 
-    T mag2();
+    T mag2() const;
 
     Complex<T> operator+(const T & other);
     Complex<T> operator+(const Complex<T> & other);
@@ -33,5 +32,5 @@ class Complex
 
     Complex<T>& operator=(const Complex<T> & other);
     bool operator==(const Complex<T> & other);
-    Complex<T> operator!();
+    Complex<T> operator!() const;
 };

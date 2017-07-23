@@ -44,3 +44,9 @@ TEST(ComplexTest_Instantiate, doubleComplex)
   EXPECT_NEAR(c.real, 2.123, doubleEps);
   EXPECT_NEAR(c.imag, -0.2345, doubleEps);
 }
+
+TEST(ComplexTest_Mag2, test1)
+{
+  Complex<float> c(1, -1);
+  EXPECT_NEAR(c.mag2(), 2, floatEps);
+}

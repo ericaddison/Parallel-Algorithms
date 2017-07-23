@@ -6,13 +6,13 @@ LIB_DIRS =
 
 ODIR = obj
 SDIR = src
-_SRC = complex.cpp main.cpp
+_SRC = main.cpp complex.cpp 
 SRC = $(patsubst %,$(SDIR)/%,$(_SRC))
 _OBJ = $(_SRC:.cpp=.o)
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 all: $(OBJ)
-	$(CC) $(CC_FLAGS) $(LIB_DIRS) $(LIBS) $^ -o bin/a.out
+	$(CC) $(CC_FLAGS) $^ $(LIB_DIRS) $(LIBS) -o bin/a.out
 
 test: all
 	make -C test
