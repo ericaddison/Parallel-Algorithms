@@ -1,5 +1,5 @@
 CC = g++
-CC_FLAGS = -std=c++11
+CC_FLAGS = -std=c++14
 LIBS = -lm
 GTEST_LIBS = -lgtest -lpthread
 INCLUDE_DIRS = -I../src
@@ -7,7 +7,7 @@ LIB_DIRS =
 
 ODIR = obj
 SDIR = src
-_SRC = gtest_main.cpp complexTest.cpp
+_SRC = gtest_main.cpp
 SRC = $(patsubst %,$(SDIR)/%,$(_SRC))
 _OBJ = $(_SRC:.cpp=.o)
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
