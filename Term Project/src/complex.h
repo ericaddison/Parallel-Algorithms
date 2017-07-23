@@ -3,10 +3,10 @@ template <class T=float>
 class Complex
 {
   public:
-    float real;
-    float imag;
+    T real;
+    T imag;
 
-    Complex(T re=0, T im=0)
+    Complex<T>(T re=0, T im=0)
     {real=re; imag=im;};
 
     T mag2();
