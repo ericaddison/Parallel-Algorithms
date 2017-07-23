@@ -33,4 +33,5 @@ class Complex
     Complex<T>& operator=(const Complex<T> & other);
     bool operator==(const Complex<T> & other);
     Complex<T> operator!() const;
+
 };

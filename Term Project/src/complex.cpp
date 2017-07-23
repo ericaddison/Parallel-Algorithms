@@ -160,6 +160,7 @@ Complex<T> Complex<T>::operator!() const
 }
 
 
+
 // force compilation of float and double methods
 // other templated versions will cause undefined reference linker errors
 // since implementation is separate from declaration (h file)
