@@ -1,6 +1,7 @@
 #include <iostream>
 #include <complex>
 #include <cmath>
+#include "dft.h"
 
 using std::complex;
 using namespace std::literals::complex_literals;
@@ -8,17 +9,25 @@ using namespace std::literals::complex_literals;
 int main()
 {
 
-  double PI = acos(-1);
+  int n = 10;
+  cvec x(n);
+  for(int i=0; i<n; i++)
+    x[i] = i+1;
 
-  complex<double> c = 1i;
-  complex<double> d = 1i;
-  std::cout << "c = " << c << "\n";
-  std::cout << "d = " << d << "\n";
-  std::cout << "c+d = " << c+d << "\n";
-  std::cout << "c-d = " << c-d << "\n";
-  std::cout << "c*d = " << c*d << "\n";
-  std::cout << "c/d = " << c/d << "\n";
-  std::cout << "exp(c) = " << exp(c) << "\n";
-  std::cout << "exp(pi*i) = " << exp(PI*1i) << "\n";
+  dft mydft(n);
+
+  cvec X(n);
+  mydft.forward(X,x);
+
+  cvec xp(n);
+  mydft.reverse(xp,X);
+
+  for(int i=0; i<n; i++)
+    std::cout << i << ": " << X[i] << std::endl;
+
+  std::cout << std::endl;
+  for(int i=0; i<n; i++)
+    std::cout << i << ": " << xp[i] << std::endl;
+
   return 0;
 }
