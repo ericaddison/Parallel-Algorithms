@@ -2,14 +2,15 @@
 #include <complex>
 #include <cmath>
 #include "dft.h"
+#include "fft.h"
 
 using std::complex;
 using namespace std::literals::complex_literals;
 
 int main()
 {
-
-  int n = 10;
+  // dft test
+  int n = 8;
   cvec x(n);
   for(int i=0; i<n; i++)
     x[i] = i+1;
@@ -28,6 +29,25 @@ int main()
   std::cout << std::endl;
   for(int i=0; i<n; i++)
     std::cout << i << ": " << xp[i] << std::endl;
+std::cout << std::endl;
+
+// fft test
+  cdouble* y = new cdouble[n];
+  for(int i=0; i<n; i++)
+    y[i] = i+1;
+
+  fft myfft(n);
+
+  cdouble* Y = new cdouble[n];
+  myfft.forward(Y,y);
+
+  for(int i=0; i<n; i++)
+    std::cout << i << ": " << Y[i] << std::endl;
+
+  std::cout << std::endl;
+
+    delete[] y;
+    delete[] Y;
 
   return 0;
 }
