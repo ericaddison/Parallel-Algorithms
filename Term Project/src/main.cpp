@@ -41,12 +41,22 @@ std::cout << std::endl;
   cdouble* Y = new cdouble[n];
   myfft.forward(Y,y);
 
+  cdouble* yp = new cdouble[n];
+  myfft.reverse(yp,Y);
+
   for(int i=0; i<n; i++)
     std::cout << i << ": " << Y[i] << std::endl;
 
   std::cout << std::endl;
 
+  for(int i=0; i<n; i++)
+    std::cout << i << ": " << yp[i] << std::endl;
+
+  std::cout << std::endl;
+
+
     delete[] y;
+    delete[] yp;
     delete[] Y;
 
   return 0;

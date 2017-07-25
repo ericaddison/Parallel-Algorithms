@@ -32,6 +32,8 @@ void fft::forward(cdouble* out, const cdouble* in)
 void fft::reverse(cdouble* out, const cdouble* in)
 {
   transform(out, in, n, 1, REVERSE);
+  for(int i=0; i<n; i++)
+    out[i] /= n;
 }
 
 // uses the class variable x as input
@@ -57,7 +59,7 @@ void fft::transform(cdouble* out, const cdouble* in, int N, int stride, directio
   // combine
   // TODO: replace that exp with cached w values
   cdouble o;
-  double v = -2*PI/N;
+  double v = 2*PI/N * ( 2*(dir==FORWARD)-1 );
   for(int k=0; k<N/2; k++)
   {
     o = exp(v*k*1i)*O[k];
