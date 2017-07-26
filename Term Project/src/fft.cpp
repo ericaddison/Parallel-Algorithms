@@ -1,29 +1,6 @@
 #include "fft.h"
 
 
-
-bool isPow2(int n)
-{
-  if(n==0)
-    return true;
-  return (!(n&(n-1)));
-}
-
-
-
-void checkSize(int n)
-{
-  if(!isPow2(n))
-  {
-    std::cout << "\n\n*******************************************************\n"
-              << "WARNING: this fft implementation will only work\n"
-              << "correctly for arrays with power-of-2 number of elements!\n"
-              << "*******************************************************\n\n";
-  }
-}
-
-
-
 // slightly modified from https://rosettacode.org/wiki/Fast_Fourier_transform#C.2B.2B
 void transform(carray& x, direction dir)
 {

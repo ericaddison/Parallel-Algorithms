@@ -6,7 +6,7 @@ LIB_DIRS =
 
 ODIR = obj
 SDIR = src
-_SRC = main.cpp dft.cpp fft.cpp
+_SRC = main.cpp dft.cpp fft.cpp fft_iterative.cpp ft_helpers.cpp
 SRC = $(patsubst %,$(SDIR)/%,$(_SRC))
 _OBJ = $(_SRC:.cpp=.o)
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
