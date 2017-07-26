@@ -32,32 +32,19 @@ int main()
 std::cout << std::endl;
 
 // fft test
-  cdouble* y = new cdouble[n];
+  carray y(n);
   for(int i=0; i<n; i++)
     y[i] = i+1;
 
-  fft myfft(n);
-
-  cdouble* Y = new cdouble[n];
-  myfft.forward(Y,y);
-
-  cdouble* yp = new cdouble[n];
-  myfft.reverse(yp,Y);
-
+  fft(y);
   for(int i=0; i<n; i++)
-    std::cout << i << ": " << Y[i] << std::endl;
-
+    std::cout << i << ": " << y[i] << std::endl;
   std::cout << std::endl;
 
+  ifft(y);
   for(int i=0; i<n; i++)
-    std::cout << i << ": " << yp[i] << std::endl;
-
+    std::cout << i << ": " << y[i] << std::endl;
   std::cout << std::endl;
-
-
-    delete[] y;
-    delete[] yp;
-    delete[] Y;
 
   return 0;
 }

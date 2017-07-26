@@ -1,72 +1,43 @@
 #include "fft.h"
 #include <iostream>
 
-// precompute exponential terms
-fft::fft(int n)
+void transform(carray& x, direction dir);
+
+void fft(carray& x)
 {
-
-  // ENSURE n is POWER of 2!
-
-  this->n = n;
-  w = std::vector<cvec>(n);
-  v = -2*PI/n;
-
-  // precompute exponential terms
-  for(int k=0; k<n; k++)
-  {
-    w[k] = cvec(n);
-    for(int j=0; j<n; j++)
-      w[k][j] = exp((v*k*j)*1i);
-  }
+  transform(x, FORWARD);
 }
 
-fft::~fft()
-{}
-
-
-void fft::forward(cdouble* out, const cdouble* in)
+void ifft(carray& x)
 {
-  transform(out, in, n, 1, FORWARD);
+  transform(x, REVERSE);
+  for(int i=0; i<x.size(); i++)
+    x[i] /= x.size();
 }
 
-void fft::reverse(cdouble* out, const cdouble* in)
+// slightly modified from https://rosettacode.org/wiki/Fast_Fourier_transform#C.2B.2B
+void transform(carray& x, direction dir)
 {
-  transform(out, in, n, 1, REVERSE);
-  for(int i=0; i<n; i++)
-    out[i] /= n;
-}
+    const size_t N = x.size();
 
-// uses the class variable x as input
-// can probably do it without the extra E and O memory, carefully writing over out...
-void fft::transform(cdouble* out, const cdouble* in, int N, int stride, direction dir)
-{
+    // recursion base case
+    if (N <= 1)
+      return;
 
-  // recursion base case
-  if(N==1)
-  {
-    out[0] = in[0];
-    return;
-  }
+    // even side recursive call
+    carray E = x[std::slice(0, N/2, 2)];
+    transform(E, dir);
 
-  // even side recursive call
-  cdouble* E = new cdouble[N/2];
-  transform(E, in, N/2, stride*2, dir);
+    // odd side recursive call
+    carray O = x[std::slice(1, N/2, 2)];
+    transform(O, dir);
 
-  // odd side recursive call
-  cdouble* O = new cdouble[N/2];
-  transform(O, &in[stride], N/2, stride*2, dir);
-
-  // combine
-  // TODO: replace that exp with cached w values
-  cdouble o;
-  double v = 2*PI/N * ( 2*(dir==FORWARD)-1 );
-  for(int k=0; k<N/2; k++)
-  {
-    o = exp(v*k*1i)*O[k];
-    out[k] = E[k] + o;
-    out[k+N/2] = E[k] - o;
-  }
-
-  delete[] E;
-  delete[] O;
+    // combine
+    double v = (2*(dir==REVERSE)-1) * 2 * PI / N;
+    for (size_t k = 0; k < N/2; ++k)
+    {
+        cdouble t = std::polar(1.0, v * k) * O[k];
+        x[k] = E[k] + t;
+        x[k+N/2] = E[k] - t;
+    }
 }
