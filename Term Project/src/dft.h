@@ -1,23 +1,10 @@
-#include <complex>
-#include <cmath>
-#include <vector>
+#ifndef _DFT_H
+#define _DFT_H
 
-using std::complex;
-using namespace std::literals::complex_literals;
+#include "ft_helpers.h"
 
-typedef std::vector<complex<double>> cvec;
+// dft functions
+void dft(carray& x);
+void idft(carray& x);
 
-class dft
-{
-
-  public:
-    dft(int n);
-    ~dft();
-    void forward(cvec& out, const cvec& in);
-    void reverse(cvec& out, const cvec& in);
-
-  private:
-    int n;
-    std::vector<cvec> w;
-    double PI = acos(-1);
-};
+#endif

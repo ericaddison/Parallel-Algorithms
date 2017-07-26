@@ -11,25 +11,14 @@ int main()
 {
   // dft test
   int n = 8;
-  cvec x(n);
+  carray x(n);
   for(int i=0; i<n; i++)
     x[i] = i+1;
 
-  dft mydft(n);
-
-  cvec X(n);
-  mydft.forward(X,x);
-
-  cvec xp(n);
-  mydft.reverse(xp,X);
-
+  dft(x);
   for(int i=0; i<n; i++)
-    std::cout << i << ": " << X[i] << std::endl;
-
+    std::cout << i << ": " << x[i] << std::endl;
   std::cout << std::endl;
-  for(int i=0; i<n; i++)
-    std::cout << i << ": " << xp[i] << std::endl;
-std::cout << std::endl;
 
 // fft test
   carray y(n);

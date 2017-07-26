@@ -1,5 +1,4 @@
 #include "fft.h"
-#include <iostream>
 
 void transform(carray& x, direction dir);
 

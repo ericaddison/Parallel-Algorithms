@@ -1,56 +1,30 @@
 #include "dft.h"
-#include <iostream>
 
-// precompute exponential terms
-dft::dft(int n)
+void transform_dft(carray& x, direction dir);
+
+void dft(carray& x)
 {
-  this->n = n;
-  w = std::vector<cvec>(n);
-  double v = -2*PI/n;
-
-  // precompute exponential terms
-  for(int k=0; k<n; k++)
-  {
-    w[k] = cvec(n);
-    for(int j=0; j<n; j++)
-      w[k][j] = exp((v*k*j)*1i);
-  }
+  transform_dft(x, FORWARD);
 }
 
-dft::~dft()
-{}
-
-void dft::forward(cvec& out, const cvec& in)
+void idft(carray& x)
 {
-
-  // vector length check
-  if(in.size() < n)
-    throw new std::invalid_argument("in.size() != n");
-  if(out.size() < n)
-    throw new std::invalid_argument("out.size() != n");
-
-  for(int k=0; k<n; k++)
-  {
-    out[k] = 0;
-    for(int j=0; j<n; j++)
-      out[k] += w[k][j]*in[j];
-  }
-
+  transform_dft(x, REVERSE);
+  for(int i=0; i<x.size(); i++)
+    x[i] /= x.size();
 }
 
-void dft::reverse(cvec& out, const cvec& in)
+void transform_dft(carray& x, direction dir)
 {
-  // vector length check
-  if(in.size() < n)
-    throw new std::invalid_argument("in.size() != n");
-  if(out.size() < n)
-    throw new std::invalid_argument("out.size() != n");
+  const size_t N = x.size();
+  const double v = (2*(dir==REVERSE)-1) * 2 * PI / N;
 
-  for(int k=0; k<n; k++)
-  {
-    out[k] = 0;
-    for(int j=0; j<n; j++)
-      out[k] += std::conj(w[k][j])*in[j];
-    out[k] /= n;
-  }
+  // make a copy of x and initialize x to zero
+  carray x_copy(x);
+  x = 0;
+
+  // n^2 dft loop
+  for(int k=0; k<N; k++)
+    for(int j=0; j<N; j++)
+      x[k] += std::polar(1.0, v * j * k) * x_copy[j];
 }
