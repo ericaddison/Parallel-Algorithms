@@ -4,8 +4,8 @@
 #include "dft.h"
 #include "fft.h"
 
-using std::complex;
-using namespace std::literals::complex_literals;
+using std::cout;
+using std::endl;
 
 int main()
 {
@@ -17,8 +17,8 @@ int main()
 
   dft(x);
   for(int i=0; i<n; i++)
-    std::cout << i << ": " << x[i] << std::endl;
-  std::cout << std::endl;
+    cout << i << ": " << x[i] << endl;
+  cout << endl;
 
 // fft test
   carray y(n);
@@ -27,13 +27,13 @@ int main()
 
   fft(y);
   for(int i=0; i<n; i++)
-    std::cout << i << ": " << y[i] << std::endl;
-  std::cout << std::endl;
+    cout << i << ": " << y[i] << endl;
+  cout << endl;
 
   ifft(y);
   for(int i=0; i<n; i++)
-    std::cout << i << ": " << y[i] << std::endl;
-  std::cout << std::endl;
+    cout << i << ": " << y[i] << endl;
+  cout << endl;
 
   return 0;
 }

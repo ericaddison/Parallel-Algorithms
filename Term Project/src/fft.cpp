@@ -1,18 +1,28 @@
 #include "fft.h"
 
-void transform(carray& x, direction dir);
 
-void fft(carray& x)
+
+bool isPow2(int n)
 {
-  transform(x, FORWARD);
+  if(n==0)
+    return true;
+  return (!(n&(n-1)));
 }
 
-void ifft(carray& x)
+
+
+void checkSize(int n)
 {
-  transform(x, REVERSE);
-  for(int i=0; i<x.size(); i++)
-    x[i] /= x.size();
+  if(!isPow2(n))
+  {
+    std::cout << "\n\n*******************************************************\n"
+              << "WARNING: this fft implementation will only work\n"
+              << "correctly for arrays with power-of-2 number of elements!\n"
+              << "*******************************************************\n\n";
+  }
 }
+
+
 
 // slightly modified from https://rosettacode.org/wiki/Fast_Fourier_transform#C.2B.2B
 void transform(carray& x, direction dir)
@@ -39,4 +49,22 @@ void transform(carray& x, direction dir)
         x[k] = E[k] + t;
         x[k+N/2] = E[k] - t;
     }
+}
+
+
+
+void fft(carray& x)
+{
+  checkSize(x.size());
+  transform(x, FORWARD);
+}
+
+
+
+void ifft(carray& x)
+{
+  checkSize(x.size());
+  transform(x, REVERSE);
+  for(int i=0; i<x.size(); i++)
+    x[i] /= x.size();
 }

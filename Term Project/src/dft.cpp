@@ -1,18 +1,6 @@
 #include "dft.h"
 
-void transform_dft(carray& x, direction dir);
 
-void dft(carray& x)
-{
-  transform_dft(x, FORWARD);
-}
-
-void idft(carray& x)
-{
-  transform_dft(x, REVERSE);
-  for(int i=0; i<x.size(); i++)
-    x[i] /= x.size();
-}
 
 void transform_dft(carray& x, direction dir)
 {
@@ -27,4 +15,20 @@ void transform_dft(carray& x, direction dir)
   for(int k=0; k<N; k++)
     for(int j=0; j<N; j++)
       x[k] += std::polar(1.0, v * j * k) * x_copy[j];
+}
+
+
+
+void dft(carray& x)
+{
+  transform_dft(x, FORWARD);
+}
+
+
+
+void idft(carray& x)
+{
+  transform_dft(x, REVERSE);
+  for(int i=0; i<x.size(); i++)
+    x[i] /= x.size();
 }
