@@ -1,28 +1,15 @@
 #include "fft_iterative.h"
 
 
-// adapted from https://graphics.stanford.edu/~seander/bithacks.html#BitReverseObvious
+// taken from https://graphics.stanford.edu/~seander/bithacks.html#BitReverseObvious
 int bitReverse(unsigned int b, int d)
 {
-
     b = (((b & 0xaaaaaaaa) >> 1) | ((b & 0x55555555) << 1));
-    if(d<2)
-      return b>>(2-d);
-
 		b = (((b & 0xcccccccc) >> 2) | ((b & 0x33333333) << 2));
-    if(d<4)
-      return b>>(4-d);
-
     b = (((b & 0xf0f0f0f0) >> 4) | ((b & 0x0f0f0f0f) << 4));
-    if(d<8)
-      return b>>(8-d);
-
     b = (((b & 0xff00ff00) >> 8) | ((b & 0x00ff00ff) << 8));
-    if(d<16)
-      return b>>(16-d);
-
     b = ((b >> 16) | (b << 16));
-      return b>>(32-d);
+    return b>>(32-d);
 }
 
 
