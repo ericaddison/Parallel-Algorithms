@@ -20,7 +20,7 @@ void bitReverse(carray& x)
 
     carray y(x);
     for(int i=0; i<N; i++)
-      x[bitReverse(i,d)] = y[ i ];
+      x[i] = y[ bitReverse(i,d) ];
 }
 
 void transform_iter(carray& x, direction dir)
@@ -35,11 +35,17 @@ void transform_iter(carray& x, direction dir)
     cdouble w = std::polar(1.0, v);
 
     // do s groups of m elements
-    for(int i=0; i<s; i++)
+    cdouble wj;
+    for(int l=0; l<s*m/2; l++)
+    //for(int i=0; i<s; i++)
     {
-      cdouble wj = 1;
-      for(int j=0; j<m/2; j++)
+      //for(int j=0; j<m/2; j++)
       {
+        int i = l/(m/2);
+        int j = l%(m/2);
+        std::cout << "i = " << i << ", j = " << j << "\n";
+        if(l%(m/2)==0)
+          wj = 1;
         int k = i*m + j;
         cdouble t = x[k];
         cdouble u = wj*x[k+m/2];
@@ -48,6 +54,7 @@ void transform_iter(carray& x, direction dir)
         wj *= w;
       }
     }
+    std::cout << "\n";
   }
 
 

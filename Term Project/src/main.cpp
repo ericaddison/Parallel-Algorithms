@@ -14,18 +14,18 @@ int main()
 {
 
   // dft test
-  int n = 1<<8;
+  int n = 1<<3;
   carray x(n);
   for(int i=0; i<n; i++)
     x[i] = i+1;
 
   dft(x);
-  idft(x);
-  /*
+//  idft(x);
+
   for(int i=0; i<n; i++)
     cout << i << ": " << x[i] << endl;
   cout << endl;
-*/
+
 
 // fft test
   carray y(n);
@@ -33,12 +33,12 @@ int main()
     y[i] = i+1;
 
   fft_iterative(y);
-  ifft_iterative(y);
-  /*
+//  ifft_iterative(y);
+
   for(int i=0; i<n; i++)
     cout << i << ": " << y[i] << endl;
   cout << endl;
-*/
+
 
 cout << "abs error: " << (abs(x-y)).sum().real()/(abs(x).sum().real()) << endl;
 
