@@ -1,7 +1,7 @@
 CC = g++
 CC_FLAGS = -std=c++14
 LIBS = -lm
-INCLUDE_DIRS =
+INCLUDE_DIRS = -I./src
 LIB_DIRS =
 
 ODIR = obj

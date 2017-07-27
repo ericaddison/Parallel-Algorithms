@@ -24,4 +24,4 @@
 #SBATCH --mail-type=end    
 # email me when the job finishes 
 
-./bin/p2.out ../testCases/inp*
+./bin/p2.out ../hw2-input/inp*
