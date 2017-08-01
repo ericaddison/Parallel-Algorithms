@@ -125,7 +125,7 @@
 In this lecture, we will build on our previous lecture on the Euler Tour technique to solve problems such as rooting a tree, computing a vertex level, and computing the number of descendants of a tree.
 
 \section{Rooting a Tree}
-Given a tree T = (V, E) rooted at a node r. For every node v $\neq$ r, we want to find the parent of v, P(v) when the tree T is rooted at r.
+Given a tree T = (V, E) rooted at a vertex r. For every vertex v $\neq$ r, we want to find the parent of v, P(v) when the tree T is rooted at vertex r.
 
 Considering the trees below, we compute the root of each vertex:
 
@@ -145,21 +145,23 @@ Considering the trees below, we compute the root of each vertex:
 \end{minipage}
 \end{figure}
 
+
 \subsection{Algorithm}
-$Input: $ A tree T(Given as adjacency list), a node r, the root of T.\\
-$Output: $ For every vertex v $\neq$ r, the parent P(v).\\
+$Input: $ A tree T(Given as adjacency list), a vertex r, the root of T.\\
+$Output: $ For every vertex v $\neq$ r, the parent P(v) of v.
 
 \begin{enumerate}
 \item Convert the Euler Circuit into the Euler Path
 \item Set $succ(u_{d-1}, r)$ to $null$
-\item Assign wieght w = 1to each edge in the linked list\\
-Apply parallel prefix on the linked list
+\item Assign weight w = 1 to each edge in the linked list\\
+Apply parallel prefix sum on the linked list
 \item For each edge (x, y) in parallel do \\
 if prefsum(x,y) < prefsum(y,x) then P(y) = x
 \end{enumerate}
 
 \subsection{Example}
-Tree rooted at node 2:\\
+Tree rooted at vertex 2:
+
 \begin{center}
 \includegraphics[scale=0.25]{g2} \\
 Euler Circuit : $(1,4)\to(4,2)\to(2,4)\to(4,3)\to(3,4)\to(4,1)\to\to\to\to(1,4)$
@@ -180,7 +182,7 @@ Euler Circuit : $(1,4)\to(4,2)\to(2,4)\to(4,3)\to(3,4)\to(4,1)\to\to\to\to(1,4)$
 \end{center}
 
 \section{Computing the Vertex Level}
-Given a tree T = (V, E) rooted at a node r. For every node v $\neq$ r, we want to find the level of v, which is the number of edges from vertex v to the root r.
+Given a tree T = (V, E) rooted at a vertex r. For every vertex v $\neq$ r, we want to find the level of vertex v, which is the number of edges from vertex v to the root r.
 
 Considering the tree below, we compute the level of each vertex:
 
@@ -197,16 +199,16 @@ Considering the tree below, we compute the level of each vertex:
 
 \subsection{Algorithm}
 \paragraph{•}
-$Input: $ A tree T(Given as adjacency list), a node r, the root of T.
+$Input: $ A tree T(Given as adjacency list), a vertex r, the root of T.
 $Input: $ For every vertex v $\neq$ r,output level(v), the distance from vertex v to the root.
 
 \begin{enumerate}
-\item Compute Euler Path for the rooted tree r
+\item Compute Euler Path for the tree T rooted at vertex r
 \item For all v ≠ r do in par \\
-      w (p(v), v) = -1 ; w(v, p(v)) = -1
-\item Perform prefix – sum 
+      w(p(v), v) = -1 ; w(v, p(v)) = -1
+\item Perform parallel prefix sum 
 \item For each v ≠ r do in par \\
-      level(v) = prefix sum (p(), v)
+      level(v) = prefix sum (p(v), v)
 \item level(r) = 0
 \end{enumerate}
 
@@ -216,7 +218,7 @@ $Input: $ For every vertex v $\neq$ r,output level(v), the distance from vertex 
 \centering
 \begin{minipage}{.5\textwidth}
   \centering
-  \includegraphics[scale=.3]{g3}
+  \includegraphics[scale=.3]{g4}
   \caption{Tree rooted at 1} 
   \label{fig:test1}
 \end{minipage}%
@@ -259,72 +261,23 @@ $Input: $ For every vertex v $\neq$ r,output level(v), the distance from vertex 
 \end{minipage}%
 \end{figure}
 
-\subsection{result}
-\begin{figure} [!h]
-\centering
-\begin{minipage}{.5\textwidth}
-  \centering
-  \includegraphics[scale=.3]{g4}
-  \caption{Tree with node level.} 
-  \label{fig:test1}
-\end{minipage}%
-\end{figure}
-
-
 \section{Computing the Number of Descendants}
-Given a tree T = (V, E) rooted at a node r. For every node v $\neq$ r, we want to find the parent of v, P(v) when the tree T is rooted at r.
-
-Considering the trees below, we compute the root of each vertex:
-
-\begin{figure}[!h]
-\centering
-\begin{minipage}{.5\textwidth}
-  \centering
-  \includegraphics[scale=.25]{g1}
-  \caption{Tree rooted at 4} $P(1) = 4\hspace{0.5cm}P(2) = 4\hspace{0.5cm}P(3) = 4\hspace{0.5cm}P(1) = \emptyset$
-  \label{fig:test1}
-\end{minipage}%
-\begin{minipage}{.5\textwidth}
-  \centering
-  \includegraphics[scale=.25]{g2}
-  \caption{Tree rooted at 2} $P(1) = 4\hspace{0.5cm}P(1) = 4\hspace{0.5cm}P(3) = 4\hspace{0.5cm}P(2) = \emptyset$
-  \label{fig:test2}
-\end{minipage}
-\end{figure}
+Given a tree T = (V, E) rooted at a vertex v. For every vertex v $\neq$ r, we want to find the number of descendants of v, including v.
 
 \subsection{Algorithm}
-$Input: $ A tree T(Given as adjacency list), a node r, the root of T.
-$Input: $ For every vertex v $\neq$ r, the parent P(v).
+$Input: $ A tree T(Given as adjacency list), a vertex r, the root of T. \\
+$Output: $ For every vertex v $\neq$ r, the number of descendants of vertex v including v.
 
-\begin{enumerate}
-\item Convert the Euler Circuit into the Euler Path
-\item Set $succ(u_{d-1}, r)$ to $null$
-\item Assign wieght w = 1to each edge in the linked list\\
-Apply parallel prefix on the linked list
-\item For each edge (x, y) in parallel do \\
-\indent if prefsum(x,y) < prefsum(y,x) then P(y) = x \\
-\end{enumerate}
+The Implementation of this algorithm was left as an exercise. \\
+$Hint:$ Size of subtree = total of vertices visited when vertex v is seen last less the number of vertex visited when vertex v is first.
 
 \subsection{Example}
-Tree rooted at node 2:\\
+Tree rooted at vertex 1:\\
 \begin{center}
-\includegraphics[scale=0.25]{g2} \\
-Euler Circuit : $(1,4)\to(4,2)\to(2,4)\to(4,3)\to(3,4)\to(4,1)\to\to\to\to(1,4)$
+\includegraphics[scale=0.35]{g5} \\
+The number of descendants is marked in blue.
 \end{center}
 
-\begin{center}
- \begin{tabular}{||c c||} 
- \hline
-    Operation & Result \\
- \hline
- 	Euler Path & $(2,4)\to(4,3)\to(3,4)\to(4,1)\to(1,4)\to(4,2)$ \\ 
- \hline
- 	Weight w & $(1)\to(1)\to(1)\to(1)\to(1)\to(1)$ \\
- \hline
- 	PrefixSum & $(1)\to(2)\to(3)\to(4)\to(5)\to(6)$ \\
- \hline
-\end{tabular}
-\end{center}
 
 \end{document}
 
