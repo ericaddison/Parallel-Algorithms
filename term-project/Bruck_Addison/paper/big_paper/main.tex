@@ -1,0 +1,67 @@
+\documentclass{article}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage[text={6.5in,8.5in}]{geometry}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{subcaption}
+\usepackage{pdflscape}
+\usepackage{adjustbox}
+
+\lstset{language=Python, numbers=left, tabsize=2, xleftmargin=5.0ex}
+
+\title{Parallel Implementations of the\\Fast Fourier Transform}
+\author{Ari Bruck\\Eric Addison }
+\date{EE382V Parallel Algorithms - Summer 2017}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+The Fast Fourier Transform (FFT) has been described as perhaps the most important algorithm of our lifetime. The FFT moniker actually refers to a class of algorithms that can compute the Discrete Fourier Transform (DFT) in better than the naive $\mathcal{O}(n^2)$ complexity. FFTs are used across a wide range of disciplines, from audio compression to astrophysics, and have a critical role in a substantial amount of the technology we enjoy today.
+
+For this project, our goal was to explore the classic Cooley-Tukey FFT algorithm in its sequential form, and to parallelize it using Cilk and Cuda. To this end, we have implemented the FFT in several ways, including:
+\begin{itemize}
+    \item sequential $\mathcal{O}(N^2)$ DFT in C++
+    \item sequential recursive FFT in C++
+    \item sequential iterative FFT in C++
+    \item parallel recursive FFT in C++ with CILK
+    \item parallel iterative FFT in C++ with CILK
+    \item parallel iterative FFT in C++ with CUDA
+\end{itemize}
+
+The code for this project is available on github at: 
+\begin{center}
+\url{https://github.com/ericaddison/Parallel\_Algs\_Term\_Project/}
+\end{center}
+
+
+\section{Fourier Decomposition}
+\input{theory.tex}
+
+
+\section{The Fast Fourier Transform}
+\input{fft.tex}
+
+\section{Parallelization of the FFT}
+\input{parallelization.tex}
+
+\section{Cilk}
+\input{cilk.tex}
+
+\section{Cuda}
+\input{cuda.tex}
+
+%\section{Analysis of Results}
+
+\section{Conclusion}
+\input{conclusion.tex}
+
+\section{References}
+\input{references.tex}
+
+
+\end{document}

@@ -1,0 +1,1 @@
+srun --pty -n 1 -p gpudev -t 04:00:00 -A Parallel-Algorithms /bin/bash -l

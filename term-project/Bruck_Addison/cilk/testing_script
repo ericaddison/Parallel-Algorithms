@@ -1,0 +1,11 @@
+#!/bin/bash
+echo "Starting Testing"
+
+X=1
+
+while [ $X -le 10000000 ]
+do
+  ./bin/fft_mine_cilk.out $X
+  X=$[$X*2]
+done
+echo "Finished testing"

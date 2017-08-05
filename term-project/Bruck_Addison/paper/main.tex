@@ -1,0 +1,85 @@
+\documentclass{article}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage[text={6.5in,8.5in}]{geometry}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{subcaption}
+\usepackage{pdflscape}
+\usepackage{adjustbox}
+\usepackage{titling}
+
+\setlength{\droptitle}{-5em}   % This is your set screw
+
+\lstset{language=Python, numbers=left, tabsize=2, xleftmargin=5.0ex}
+
+\title{Parallel Implementations of the\\Fast Fourier Transform}
+\author{Ari Bruck\\Eric Addison }
+\date{EE382V Parallel Algorithms - Summer 2017}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+The Fast Fourier Transform (FFT) has been described as perhaps the most important algorithm of our lifetime. The FFT moniker actually refers to a class of algorithms that can compute the Discrete Fourier Transform (DFT) in better than the naive $\mathcal{O}(N^2)$ complexity. FFTs are used across a wide range of disciplines, from audio compression to astrophysics, and have a critical role in a substantial amount of the technology we enjoy today.
+
+For this project, our goal was to explore the classic Cooley-Tukey FFT algorithm in its sequential form, and to parallelize it using Cilk and Cuda. To this end, we have implemented the FFT in several ways, including both iterative and recursive solutions in C++ sequentially and with the Cilk parallel processing extension, as well as an iterative solution in C++ using the Cuda GPU parallel processing framework.
+
+The code for this project is available on github at: 
+\begin{center}
+\url{https://github.com/ericaddison/Parallel\_Algs\_Term\_Project/}
+\end{center}
+
+
+\section{The Fast Fourier Transform}
+\input{fft.tex}
+
+\section{Parallelization of the FFT}
+\input{parallelization.tex}
+
+\section{Cilk}
+\input{cilk.tex}
+
+\section{Cuda}
+\input{cuda.tex}
+
+\section{Conclusion}
+\input{conclusion.tex}
+
+\pagebreak
+\thispagestyle{empty}
+\begin{huge}\noindent \textbf{REFERENCES}\end{huge}\\\\
+\input{references.tex}
+
+\clearpage
+\pagenumbering{arabic}% resets `page` counter to 1
+\renewcommand*{\thepage}{\ref{theoryAppendix}\arabic{page}}
+
+%\pagebreak
+\begin{huge}\noindent \textbf{APPENDICES}\end{huge}
+
+\appendix
+\section{Fourier Decomposition}
+\label{theoryAppendix}
+\input{theory.tex}
+
+\newpage
+\clearpage
+\pagenumbering{arabic}% resets `page` counter to 1
+\renewcommand*{\thepage}{\ref{cilkAppendix}\arabic{page}}
+\section{Cilk}
+\label{cilkAppendix}
+\input{cilk_appendix.tex}
+
+\newpage
+\clearpage
+\pagenumbering{arabic}% resets `page` counter to 1
+\renewcommand*{\thepage}{\ref{cudaAppendix}\arabic{page}}
+\section{Cuda}
+\label{cudaAppendix}
+\input{cuda_appendix.tex}
+
+\end{document}

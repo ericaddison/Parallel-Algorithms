@@ -1,0 +1,13 @@
+Cuda is a parallel programming framework from Nvidia that allows programmers to make use of GPU hardware for general purpose computation through the use of language extensions and an API. Prior to the release of Cuda, using GPUs for general computations required advanced graphics programming knowledge. 
+\subsection{How Cuda Works}
+High performance GPUs (graphics processing units) have become common in commodity hardware. Performing high speed graphics calculations benefits from a massively parallel collection of simple, specialized processors, as graphics related operations tend to follow a SIMD (single instruction multiple data) execution model. GPUs have therefore evolved to provide just this characteristic: a massively parallel multi-core system highly tuned to perform similar calculations on many cores.
+
+A typical cuda program might implement the following steps:
+\begin{itemize}
+    \item Load data from CPU memory to GPU
+    \item Launch specially written kernel functions on the GPU from the CPU
+    \item GPU executes computation in parallel
+    \item Retrieve data from GPU memory to CPU
+\end{itemize}
+
+It is rather simple to begin writing parallel cuda code for execution on a GPU. Challenges arise, however, when trying to optimize codes for proper use of the GPU memory hierarchy, thread grouping and allocation, and tuning for specific hardware. 
